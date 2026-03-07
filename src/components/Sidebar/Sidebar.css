@@ -1,108 +1,338 @@
+/* ===== SIDEBAR WRAPPER ===== */
 .sidebar {
-  min-height: 100vh;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: #f0f4f9;
-  padding: 25px 15px;
-}
-
-.sidebar img {
-  width: 20px;
-}
-
-.sidebar .menu {
-  display: block;
-  margin-left: 10px;
-  cursor: pointer;
-}
-
-.sidebar .new-chat {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
-  background-color: #e6eaf1;
-  border-radius: 50px;
-  font-size: 14px;
-  color: grey;
-  cursor: pointer;
-}
-
-.sidebar .recent {
+  width: 258px;
+  min-width: 258px;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  animation: fadeIn 1.5s;
+  justify-content: space-between;
+  background: #ffffff;
+  border-right: 1px solid #e4eaf5;
+  padding: 0;
+  transition: width 0.3s ease, min-width 0.3s ease;
+  overflow: hidden;
+  box-shadow: 2px 0 12px rgba(39, 119, 252, 0.05);
+  flex-shrink: 0;
 }
 
+.sidebar.collapsed {
+  width: 68px;
+  min-width: 68px;
+}
+
+/* ===== SIDEBAR LOGO AREA ===== */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 64px;
+  border-bottom: 1px solid #e4eaf5;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2777fc, #5b4cf5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity 0.2s;
+}
+
+.sidebar.collapsed .sidebar-logo-text {
+  opacity: 0;
+  width: 0;
+}
+
+/* ===== SIDEBAR TOP (NAV) ===== */
+.sidebar .sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar .sidebar-top::-webkit-scrollbar { width: 3px; }
+.sidebar .sidebar-top::-webkit-scrollbar-thumb { background: #d0e0ff; border-radius: 10px; }
+
+/* ===== MENU TOGGLE BUTTON ===== */
+.sidebar .menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.sidebar .menu-btn:hover {
+  background: #f2f7ff;
+}
+
+.sidebar .menu-btn img {
+  width: 20px;
+  opacity: 0.5;
+}
+
+/* ===== NEW CHAT BUTTON ===== */
+.new-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2777fc;
+  background: #f0f6ff;
+  border: 1.5px dashed #c0d8ff;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.new-chat-btn:hover {
+  background: #e0ecff;
+  border-color: #2777fc;
+}
+
+.new-chat-btn img {
+  width: 18px;
+  flex-shrink: 0;
+  filter: invert(35%) sepia(90%) saturate(1200%) hue-rotate(210deg);
+}
+
+/* ===== NAV ITEMS ===== */
+.sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #5f5f5f;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar .nav-item:hover {
+  background: #f2f7ff;
+  color: #2777fc;
+}
+
+.sidebar .nav-item.active {
+  background: #e8f0fe;
+  color: #2777fc;
+  font-weight: 600;
+}
+
+.sidebar .nav-item img {
+  width: 19px;
+  flex-shrink: 0;
+  opacity: 0.45;
+}
+
+.sidebar .nav-item:hover img,
+.sidebar .nav-item.active img {
+  opacity: 1;
+  filter: invert(35%) sepia(90%) saturate(1200%) hue-rotate(210deg);
+}
+
+.sidebar .nav-item .nav-emoji {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sidebar .nav-label {
+  transition: opacity 0.2s, width 0.2s;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .nav-label {
+  opacity: 0;
+  width: 0;
+}
+
+/* ===== DIVIDER ===== */
+.sidebar .divider {
+  height: 1px;
+  background: #e4eaf5;
+  margin: 10px 4px;
+}
+
+/* ===== RECENT SECTION ===== */
 .sidebar .recent-title {
-  margin-top: 30px;
-  margin-bottom: 20px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: #bebebe;
+  letter-spacing: 1.2px;
+  padding: 0 12px;
+  margin: 8px 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: 600;
+}
+
+.sidebar.collapsed .recent-title {
+  opacity: 0;
 }
 
 .sidebar .recent-entry {
   display: flex;
-  align-items: start;
-  gap: 10px;
-  padding: 10px;
-  padding-right: 40px;
-  border-radius: 50px;
-  color: #282828;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #5f5f5f;
+  font-size: 13px;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.2s, color 0.2s;
 }
 
 .sidebar .recent-entry:hover {
-  background-color: #e2e6eb;
+  background: #f2f7ff;
+  color: #2777fc;
 }
 
-.sidebar .bottom {
+.sidebar .recent-entry.active {
+  background: #e8f0fe;
+  color: #2777fc;
+  font-weight: 600;
+  border-left: 3px solid #2777fc;
+  padding-left: 9px;
+}
+
+.sidebar .recent-entry.active img {
+  opacity: 0.8;
+  filter: invert(35%) sepia(90%) saturate(1200%) hue-rotate(210deg);
+}
+
+.delete-conv-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #bebebe;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.sidebar .recent-entry:hover .delete-conv-btn {
+  opacity: 1;
+}
+
+.delete-conv-btn:hover {
+  color: #e53935;
+  background: #ffeaea;
+}
+
+.sidebar .recent-entry img {
+  width: 15px;
+  flex-shrink: 0;
+  opacity: 0.35;
+}
+
+.sidebar .recent-entry:hover img {
+  opacity: 0.7;
+  filter: invert(35%) sepia(90%) saturate(1200%) hue-rotate(210deg);
+}
+
+/* ===== SIDEBAR BOTTOM ===== */
+.sidebar .sidebar-bottom {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding: 10px 10px 16px;
+  border-top: 1px solid #e4eaf5;
 }
 
-.sidebar .bottom-item {
-  padding-right: 10px;
-  cursor: pointer;
+/* ===== COLLAPSED ICON TOOLTIP ===== */
+.sidebar.collapsed .new-chat-btn {
+  justify-content: center;
+  padding: 11px;
+  border-radius: 10px;
+  gap: 0;
 }
 
-@media (max-width:600px) {
-  .sidebar{
-    display: none;
-  }
-
-  
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .recent-entry {
+  justify-content: center;
+  padding: 10px;
+  gap: 0;
 }
 
-/* Tạo khoảng cách giữa nút Chat mới và Folder */
-.folder-tab {
-  margin-top: 10px; 
-}
-
-/* Chỉnh kích thước và vị trí cho icon thư mục (emoji) để khớp với icon của bạn */
-.folder-icon {
-  font-size: 20px;
-  margin-left: 5px; /* Điều chỉnh để thẳng hàng với icon dấu cộng + */
+/* ===== HOME LINK ===== */
+.sidebar-home-link {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 20px;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #5f5f5f;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-decoration: none;
 }
 
-/* Nổi bật tab đang được chọn */
-.active-tab {
-  background-color: #e2e6eb; /* Hoặc màu nền bạn thích cho trạng thái active */
-  border-radius: 50px; /* Tùy thuộc vào border-radius hiện tại của class .new-chat */
+.sidebar-home-link:hover {
+  background: #f2f7ff;
+  color: #2777fc;
 }
 
-/* Container chứa các nút chức năng chính */
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Khoảng cách giữa nút Chat và nút Folder */
-  margin-top: 40px; /* Cách icon Menu 3 gạch ở trên một khoảng */
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
 }
 
-/* Đảm bảo nút folder không bị ghi đè margin */
-.folder-tab {
-  margin-top: 0; /* Xóa margin-top cũ nếu có vì đã dùng gap ở trên */
+@media (max-width: 600px) {
+  .sidebar {
+    display: none;
+  }
 }
