@@ -8,20 +8,20 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const embeddings = new GoogleGenerativeAIEmbeddings({
   apiKey: API_KEY,
-  model: "embedding-001",
+  model: "gemini-embedding-001", 
 });
 
 let vectorStoreInstance = null;
 let isInitializing = false;
 
-// Hàm dừng chương trình (delay) để tránh spam API
+// Khởi tạo mảng lưu trữ lịch sử hội thoại cục bộ
+let chatHistory = [];
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function getVectorStore() {
-  // 1. Trả về ngay nếu đã có instance
   if (vectorStoreInstance) return vectorStoreInstance;
 
-  // 2. Nếu đang có tiến trình nạp khác, đợi nó xong
   if (isInitializing) {
     while (isInitializing) {
       await sleep(500);
@@ -39,21 +39,20 @@ async function getVectorStore() {
     });
 
     const texts = await splitter.splitText(knowledge.content);
-
-    // Khởi tạo store trống
     const store = new MemoryVectorStore(embeddings);
 
-    // 3. Nạp dữ liệu theo từng cụm nhỏ (Batching)
-    // Thay vì nạp tất cả, ta nạp mỗi lần 1 đoạn để không vi phạm giới hạn 429
-    for (let i = 0; i < texts.length; i++) {
-      await store.addDocuments([
-        { pageContent: texts[i], metadata: { id: i } },
-      ]);
+    const BATCH_SIZE = 5; 
+    for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+      const batchTexts = texts.slice(i, i + BATCH_SIZE);
+      const docs = batchTexts.map((text, index) => ({
+        pageContent: text,
+        metadata: { id: i + index },
+      }));
 
-      console.log(`Tiến độ: ${i + 1}/${texts.length} đoạn được nạp.`);
-
-      // Nghỉ 2 giây sau mỗi lần nạp để an toàn tuyệt đối với gói Free
-      await sleep(2000);
+      await store.addDocuments(docs);
+      if (i + BATCH_SIZE < texts.length) {
+        await sleep(1000); 
+      }
     }
 
     vectorStoreInstance = store;
@@ -68,29 +67,60 @@ async function getVectorStore() {
   }
 }
 
+// Hàm này dùng để xóa lịch sử khi người dùng bấm "New Chat"
+export const resetChatHistory = () => {
+  chatHistory = [];
+};
+
 async function runChat(prompt) {
   if (!API_KEY) return "Thiếu API Key!";
 
   try {
     const store = await getVectorStore();
 
-    // Tìm kiếm ngữ cảnh
-    const searchResults = await store.similaritySearch(prompt, 2);
+    // Lấy ngữ cảnh từ Vector DB
+    const searchResults = await store.similaritySearch(prompt, 3);
     const context = searchResults.map((res) => res.pageContent).join("\n\n");
 
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    
+    // Sử dụng systemInstruction để định hình nhân vật và quy tắc cực kỳ nghiêm ngặt
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      systemInstruction: `Bạn là trợ lý học tập môn Tin học hỗ trợ sinh viên.
+Quy tắc xử lý:
+1. Đọc [Ngữ cảnh từ tài liệu] được đính kèm trong câu hỏi.
+2. Kiểm tra xem câu hỏi của sinh viên có liên quan đến các chủ đề trong ngữ cảnh hoặc môn Tin học nói chung hay không.
+3. Nếu ĐÚNG chủ đề: Trả lời sinh viên trực tiếp, xưng hô lịch sự, tự nhiên. Sử dụng kiến thức của bạn để giải thích chi tiết.
+4. Nếu SAI chủ đề (ví dụ: hỏi về thời tiết, giải trí, toán học khác...): Từ chối lịch sự và nhắc nhở rằng bạn chỉ hỗ trợ giải đáp môn Tin học.
+5. Tuyệt đối KHÔNG tự tạo ra các đoạn hội thoại mẫu (kiểu "Học sinh: ... / Chuyên gia: ..."). Chỉ trả lời thẳng vào vấn đề.`
+    });
 
-    const fullPrompt = `Dựa vào tài liệu này:\n${context}\n\nCâu hỏi: ${prompt}\nTrả lời ngắn gọn:`;
+    // Khởi tạo phiên chat kèm theo lịch sử các tin nhắn trước đó
+    const chat = model.startChat({
+      history: chatHistory,
+    });
 
-    const result = await model.generateContent(fullPrompt);
-    return result.response.text();
+    // Gắn context ngầm vào câu hỏi hiện tại để model đọc, nhưng user không thấy
+    const fullPrompt = `[Ngữ cảnh từ tài liệu]:\n${context}\n\n[Câu hỏi của sinh viên]: ${prompt}`;
+
+    // Gửi tin nhắn
+    const result = await chat.sendMessage(fullPrompt);
+    const responseText = result.response.text();
+
+    // Cập nhật lịch sử (Lưu lại chính xác những gì user hỏi và bot đáp)
+    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+    chatHistory.push({ role: "model", parts: [{ text: responseText }] });
+
+    // Giữ lại tối đa 6 tin nhắn gần nhất (3 lượt trao đổi giữa 2 bên) để nhớ ngữ cảnh
+    if (chatHistory.length > 6) {
+      chatHistory = chatHistory.slice(chatHistory.length - 6);
+    }
+
+    return responseText;
   } catch (error) {
     console.error("Lỗi tại runChat:", error);
-    if (error.status === 429) {
-      return "Hệ thống đang nạp dữ liệu, vui lòng đợi trong giây lát và gửi lại câu hỏi.";
-    }
-    return "Có lỗi xảy ra, vui lòng thử lại.";
+    return "Có lỗi xảy ra trong quá trình xử lý, vui lòng thử lại.";
   }
 }
 

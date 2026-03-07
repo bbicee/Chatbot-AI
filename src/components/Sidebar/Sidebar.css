@@ -18,7 +18,6 @@
 }
 
 .sidebar .new-chat {
-  margin-top: 50px;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -72,4 +71,38 @@
   }
 
   
+}
+
+/* Tạo khoảng cách giữa nút Chat mới và Folder */
+.folder-tab {
+  margin-top: 10px; 
+}
+
+/* Chỉnh kích thước và vị trí cho icon thư mục (emoji) để khớp với icon của bạn */
+.folder-icon {
+  font-size: 20px;
+  margin-left: 5px; /* Điều chỉnh để thẳng hàng với icon dấu cộng + */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+/* Nổi bật tab đang được chọn */
+.active-tab {
+  background-color: #e2e6eb; /* Hoặc màu nền bạn thích cho trạng thái active */
+  border-radius: 50px; /* Tùy thuộc vào border-radius hiện tại của class .new-chat */
+}
+
+/* Container chứa các nút chức năng chính */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Khoảng cách giữa nút Chat và nút Folder */
+  margin-top: 40px; /* Cách icon Menu 3 gạch ở trên một khoảng */
+}
+
+/* Đảm bảo nút folder không bị ghi đè margin */
+.folder-tab {
+  margin-top: 0; /* Xóa margin-top cũ nếu có vì đã dùng gap ở trên */
 }
