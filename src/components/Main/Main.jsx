@@ -8,10 +8,32 @@ import { useLocation } from "react-router-dom"; // Import thêm Hook của React
 const documentData = [
   {
     id: 1,
-    title: "Chương 1: Tổng quan Hệ điều hành",
+    title: "Chương 1",
     files: [
-      { id: 101, name: "BaiGiang_Chuong1.pdf", url: "/data/pdfs/C1/chuong1.pdf" },
-      { id: 102, name: "ThucHanh_C1.pdf", url: "/data/pdfs/C1/thuchanh_chuong1.pdf" }
+      { id: 101, name: "Bài giảng", url: "/data/pdfs/C1/chuong1.pdf" },
+      { id: 102, name: "Bài thực hành", url: "/data/pdfs/C1/thuchanh_chuong1.pdf" }
+    ]
+  },
+  {
+    id: 2,
+    title: "Chương 2",
+    files: [
+      { id: 201, name: "Bài 1", url: "/data/pdfs/C2/bai1.pdf" },
+      { id: 202, name: "Bài 2", url: "/data/pdfs/C2/bai2.pdf" },
+      { id: 203, name: "Bài 3", url: "/data/pdfs/C2/bai3.pdf" },
+      { id: 204, name: "Bài 4", url: "/data/pdfs/C2/bai4.pdf" },
+      { id: 205, name: "Bài 5", url: "/data/pdfs/C2/bai5.pdf" },
+      { id: 206, name: "Bài 6", url: "/data/pdfs/C2/bai6.pdf" },
+    ]
+  },
+  {
+    id: 3,
+    title: "Chương 3",
+    files: [
+      { id: 301, name: "Bài 1", url: "/data/pdfs/C3/bai1.pdf" },
+      { id: 302, name: "Bài 2", url: "/data/pdfs/C3/bai2.pdf" },
+      { id: 303, name: "Bài 3", url: "/data/pdfs/C3/bai3.pdf" },
+      { id: 304, name: "Bài 4", url: "/data/pdfs/C3/bai4.pdf" }
     ]
   }
 ];
