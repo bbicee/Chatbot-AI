@@ -672,36 +672,28 @@ html {
 /* Back to top button */
 
 #button {
-    display: inline-block;
-    background-color: var(--e-global-color-accent);
-    width: 64px;
-    height: 64px;
-    text-align: center;
-    border-radius: 10px;
-    position: fixed;
-    bottom: 60px;
-    right: 80px;
-    transition: background-color .3s, opacity .5s, visibility .5s;
-    opacity: 0;
-    visibility: hidden;
-    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    -webkit-animation: spineer 2s infinite;
-    animation: spineer 2s infinite;
+    width: 50px;
+    height: 50px;
+    position: fixed;
+    bottom: 60px;
+    right: 80px;
+    transition: opacity .5s, visibility .5s;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 10;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.6s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    color: var(--e-global-color-accent);
 }
 
-#button::after {
-    content: "\f062";
-    font-family: "Font Awesome 5 free";
-    font-size: 20px;
-    line-height: 20px;
-    color: #fff;
-    font-weight: 600;
+#button i {
+    font-size: 24px;
+    color: var(--e-global-color-accent);
+    font-weight: 900;
 }
 
 #button.show {
@@ -711,6 +703,10 @@ html {
 
 #button:hover {
     transform: translateY(-5px);
+}
+
+#button:hover i {
+    color: #2050a0;
 }
 
 .special-text {

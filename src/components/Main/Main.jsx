@@ -41,10 +41,10 @@ const DOCUMENT_DATA = [
 ];
 
 const SUGGESTIONS = [
-  { text: "Hướng dẫn sử dụng các hàm điều kiện và hàm tìm kiếm trong Excel",         icon: assets.compass_icon },
-  { text: "Tóm tắt kiến thức trọng tâm về cấu trúc máy tính và hệ điều hành",         icon: assets.bulb_icon },
-  { text: "Tổng hợp các phím tắt và thủ thuật thao tác nhanh trên Windows và Word",   icon: assets.message_icon },
-  { text: "Viết đoạn mã mẫu và giải thích logic thuật toán bằng Python và C++",        icon: assets.code_icon },
+  { text: "Hướng dẫn cách sử dụng Excel để tổng hợp và phân tích dữ liệu",            icon: assets.compass_icon },
+  { text: "Giải thích các khái niệm cơ bản về thuật toán và độ phức tạp",            icon: assets.bulb_icon },
+  { text: "Thảo luận về cơ sở dữ liệu quan hệ và cách viết câu lệnh SQL",           icon: assets.message_icon },
+  { text: "Viết mã mẫu Python hoặc C++ để giải quyết bài toán lập trình",           icon: assets.code_icon },
 ];
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
