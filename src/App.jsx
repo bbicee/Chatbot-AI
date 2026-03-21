@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar/Sidebar';
 import Main from './components/Main/Main';
 import AdminSidebar from './components/Admin/AdminSidebar';
 import AdminMain from './components/Admin/AdminMain';
+import Login from './components/Login/Login';
+
+// Bảo vệ route: chưa đăng nhập sẽ bị chuyển về /login
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  return token ? children : <Navigate to="/login" replace />;
+};
 
 const RedirectToStaticHome = () => {
   useEffect(() => {
@@ -76,7 +83,13 @@ const DashboardLayout = () => {
                   background: '#2777fc', color: '#fff', fontWeight: 500,
                   cursor: 'pointer', fontFamily: 'inherit', fontSize: 13,
                 }}
-                onClick={() => { setShowLogout(false); navigate('/'); }}
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('user');
+                  localStorage.removeItem('rememberMe');
+                  setShowLogout(false);
+                  navigate('/login');
+                }}
               >
                 🚪 Đăng xuất
               </button>
@@ -93,9 +106,10 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<RedirectToStaticHome />} />
-        <Route path="/chatbot" element={<ChatbotLayout />} />
-        <Route path="/documents" element={<ChatbotLayout />} />
-        <Route path="/admin" element={<DashboardLayout />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/chatbot" element={<ProtectedRoute><ChatbotLayout /></ProtectedRoute>} />
+        <Route path="/documents" element={<ProtectedRoute><ChatbotLayout /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

@@ -1,5 +1,6 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getUsers, createUser, updateUser, deleteUser } from "../../services/userService";
 import "./AdminMain.css";
 
 // ─── Initial Data ─────────────────────────────────────────────────────────────
@@ -37,12 +38,6 @@ const INITIAL_SUBJECTS = [
   },
 ];
 
-const INITIAL_USERS = [
-  { id: 1, username: "admin",       fullname: "Quản trị viên",  role: "admin", active: true },
-  { id: 2, username: "giangvien01", fullname: "Nguyễn Thị Lan", role: "admin", active: true },
-  { id: 3, username: "nguyenvana",  fullname: "Nguyễn Văn A",   role: "user",  active: true },
-  { id: 4, username: "tranthib",    fullname: "Trần Thị B",     role: "user",  active: false },
-];
 
 const INITIAL_ACTIVITY = [
   { text: <>Tải lên PDF <strong>Chương 1 – Tin học đại cương</strong></>, time: "Hôm nay, 09:14", color: "#2777fc" },
@@ -580,11 +575,11 @@ function SubjectsPage({ subjects, setSubjects, toast }) {
 }
 
 // ─── User Modal ───────────────────────────────────────────────────────────────
-function UserModal({ data, onClose, onSave }) {
-  const [username, setUsername] = useState(data?.username || "");
-  const [fullname, setFullname] = useState(data?.fullname || "");
+function UserModal({ data, onClose, onSave, canEditRole = true }) {
+  const [name, setName] = useState(data?.name || "");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState(data?.role || "user");
+  const [role, setRole] = useState(data?.role ?? 0);
   const isEdit = !!data;
 
   return (
@@ -592,38 +587,63 @@ function UserModal({ data, onClose, onSave }) {
       <div className="db-modal">
         <div className="db-modal-title">
           <span className="db-modal-title-icon">{isEdit ? "✏️" : "👤"}</span>
-          {isEdit ? "Sửa tài khoản" : "Thêm tài khoản"}
+          {isEdit ? `Sửa tài khoản: ${data.username}` : "Thêm tài khoản"}
         </div>
         <div className="db-modal-body">
+          {!isEdit && (
+            <div className="db-form-group">
+              <label className="db-form-label">Tên đăng nhập <span style={{ color: "#e53935" }}>*</span></label>
+              <input
+                className="db-form-input"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="VD: nguyenvana"
+                autoFocus
+              />
+            </div>
+          )}
           <div className="db-form-group">
-            <label className="db-form-label">Tên đăng nhập <span style={{ color: "#e53935" }}>*</span></label>
-            <input className="db-form-input" value={username} onChange={(e) => setUsername(e.target.value)}
-              placeholder="VD: nguyenvana" autoFocus readOnly={isEdit} style={isEdit ? { opacity: 0.7 } : {}} />
-          </div>
-          <div className="db-form-group">
-            <label className="db-form-label">Họ và tên</label>
-            <input className="db-form-input" value={fullname} onChange={(e) => setFullname(e.target.value)}
-              placeholder="VD: Nguyễn Văn A" />
+            <label className="db-form-label">Họ và tên <span style={{ color: "#e53935" }}>*</span></label>
+            <input
+              className="db-form-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="VD: Nguyễn Văn A"
+              autoFocus={isEdit}
+            />
           </div>
           {!isEdit && (
             <div className="db-form-group">
               <label className="db-form-label">Mật khẩu <span style={{ color: "#e53935" }}>*</span></label>
-              <input className="db-form-input" type="password" value={password}
-                onChange={(e) => setPassword(e.target.value)} placeholder="Nhập mật khẩu..." />
+              <input
+                className="db-form-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nhập mật khẩu..."
+              />
             </div>
           )}
-          <div className="db-form-group">
-            <label className="db-form-label">Vai trò</label>
-            <select className="db-form-select" value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="user">Người dùng</option>
-              <option value="admin">Quản trị viên</option>
-            </select>
-          </div>
+          {canEditRole && (
+            <div className="db-form-group">
+              <label className="db-form-label">Vai trò</label>
+              <select
+                className="db-form-select"
+                value={role}
+                onChange={(e) => setRole(Number(e.target.value))}
+              >
+                <option value={0}>Người dùng</option>
+                <option value={1}>Quản trị viên</option>
+              </select>
+            </div>
+          )}
         </div>
         <div className="db-modal-footer">
           <button className="db-btn db-btn-secondary" onClick={onClose}>Hủy</button>
-          <button className="db-btn db-btn-primary"
-            onClick={() => onSave({ username: username.trim(), fullname: fullname.trim(), password, role })}>
+          <button
+            className="db-btn db-btn-primary"
+            onClick={() => onSave({ username: username.trim(), name: name.trim(), password, role, isEdit })}
+          >
             💾 Lưu
           </button>
         </div>
@@ -667,58 +687,105 @@ function ChangePasswordModal({ user, onClose, onSave }) {
 }
 
 // ─── Accounts Page ────────────────────────────────────────────────────────────
-function AccountsPage({ users, setUsers, toast }) {
+function AccountsPage({ users, setUsers, currentUser, toast }) {
   const [filter, setFilter] = useState("");
   const [userModal, setUserModal] = useState(null);
   const [changePwModal, setChangePwModal] = useState(null);
   const [confirm, setConfirm] = useState(null);
-  const nextUserId = useRef(users.length ? Math.max(...users.map(u => u.id)) + 1 : 1);
-  const currentRole = "admin";
+  const isAdmin = currentUser?.role === 1;
 
-  const filtered = users.filter(
-    (u) =>
-      u.username.toLowerCase().includes(filter.toLowerCase()) ||
-      (u.fullname && u.fullname.toLowerCase().includes(filter.toLowerCase()))
-  );
+  const filtered = users.filter((u) => {
+    const q = filter.toLowerCase();
+    return (
+      (u.username || "").toLowerCase().includes(q) ||
+      (u.name || "").toLowerCase().includes(q)
+    );
+  });
 
-  const saveUser = ({ username, fullname, password, role }) => {
-    if (!username) { toast("Vui lòng nhập tên đăng nhập!", "error"); return; }
-    if (userModal?.editing) {
-      setUsers((prev) => prev.map((u) =>
-        u.id === userModal.editing.id ? { ...u, fullname, role } : u
-      ));
-      toast("Cập nhật tài khoản thành công!");
-    } else {
+  // ── PUT /users/:id  or  POST /users ─────────────────────────────────────
+  const saveUser = async ({ username, name, password, role, isEdit }) => {
+    if (!name.trim()) { toast("Vui lòng nhập họ và tên!", "error"); return; }
+    if (!isEdit) {
+      // CREATE
+      if (!username.trim()) { toast("Vui lòng nhập tên đăng nhập!", "error"); return; }
       if (!password) { toast("Vui lòng nhập mật khẩu!", "error"); return; }
-      if (users.find((u) => u.username === username)) { toast("Tên đăng nhập đã tồn tại!", "error"); return; }
-      setUsers((prev) => [...prev, { id: nextUserId.current++, username, fullname, role, active: true }]);
-      toast("Thêm tài khoản thành công!");
+      if (password.length < 6) { toast("Mật khẩu phải có ít nhất 6 ký tự!", "error"); return; }
+      try {
+        const res = await createUser({ username: username.trim(), name: name.trim(), password, role });
+        if (res.success !== false) {
+          const newUser = res.data?.user || res.data || { username: username.trim(), name: name.trim(), role };
+          setUsers((prev) => [...prev, newUser]);
+          toast("Thêm tài khoản thành công!");
+        } else {
+          toast(res.message || "Thêm tài khoản thất bại!", "error"); return;
+        }
+      } catch {
+        toast("Lỗi kết nối!", "error"); return;
+      }
+    } else {
+      // UPDATE
+      const id = userModal.editing.id;
+      const body = isAdmin ? { name: name.trim(), role } : { name: name.trim() };
+      try {
+        const res = await updateUser(id, body);
+        if (res.success !== false) {
+          setUsers((prev) =>
+            prev.map((u) => u.id === id ? { ...u, name: name.trim(), ...(isAdmin ? { role } : {}) } : u)
+          );
+          toast("Cập nhật tài khoản thành công!");
+        } else {
+          toast(res.message || "Cập nhật thất bại!", "error"); return;
+        }
+      } catch {
+        toast("Lỗi kết nối!", "error"); return;
+      }
     }
     setUserModal(null);
   };
 
-  const deleteUser = (u) => {
+  // ── DELETE /users/:id ─────────────────────────────────────────────────────
+  const handleDeleteUser = (u) => {
     setConfirm({
-      msg: `Xóa tài khoản "${u.username}"? Thao tác này không thể hoàn tác!`,
-      fn: () => {
-        setUsers((prev) => prev.filter((x) => x.id !== u.id));
-        toast("Đã xóa tài khoản!", "info");
+      msg: `Xóa tài khoản "${u.username || u.name}"? Thao tác này không thể hoàn tác!`,
+      fn: async () => {
+        try {
+          const res = await deleteUser(u.id);
+          if (res.success !== false) {
+            setUsers((prev) => prev.filter((x) => x.id !== u.id));
+            toast("Đã xóa tài khoản!", "info");
+          } else {
+            toast(res.message || "Xóa thất bại!", "error");
+          }
+        } catch {
+          toast("Lỗi kết nối!", "error");
+        }
       },
     });
   };
 
-  const changePassword = (newPw, confirmPw) => {
+  // ── PUT /users/:id (password) ─────────────────────────────────────────────
+  const changePassword = async (newPw, confirmPw) => {
     if (!newPw) { toast("Vui lòng nhập mật khẩu mới!", "error"); return; }
     if (newPw.length < 6) { toast("Mật khẩu phải có ít nhất 6 ký tự!", "error"); return; }
     if (newPw !== confirmPw) { toast("Mật khẩu xác nhận không khớp!", "error"); return; }
-    setChangePwModal(null);
-    toast("Đổi mật khẩu thành công!");
+    try {
+      const res = await updateUser(changePwModal.id, { password: newPw });
+      if (res.success !== false) {
+        setChangePwModal(null);
+        toast("Đổi mật khẩu thành công!");
+      } else {
+        toast(res.message || "Đổi mật khẩu thất bại!", "error");
+      }
+    } catch {
+      toast("Lỗi kết nối!", "error");
+    }
   };
 
   const avatarStyle = (role) => ({
-    background: role === "admin"
-      ? "linear-gradient(135deg, #7c3aed, #5b4cf5)"
-      : "linear-gradient(135deg, #2777fc, #38b2fc)",
+    background:
+      role === 1
+        ? "linear-gradient(135deg, #7c3aed, #5b4cf5)"
+        : "linear-gradient(135deg, #2777fc, #38b2fc)",
   });
 
   return (
@@ -726,16 +793,22 @@ function AccountsPage({ users, setUsers, toast }) {
       <div className="db-section-header">
         <div>
           <h2>Quản lý tài khoản</h2>
-          <p>Tạo, chỉnh sửa và phân quyền tài khoản người dùng trong hệ thống</p>
+          <p>
+            {isAdmin
+              ? "Xem và quản lý toàn bộ tài khoản trong hệ thống"
+              : "Xem danh sách tài khoản và chỉnh sửa hồ sơ của bạn"}
+          </p>
         </div>
         <div className="db-section-header-actions">
           <div className="db-search-bar">
             <span className="db-search-icon">🔍</span>
             <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Tìm tài khoản..." />
           </div>
-          <button className="db-btn db-btn-primary" onClick={() => setUserModal({ editing: null })}>
-            ＋ Thêm tài khoản
-          </button>
+          {isAdmin && (
+            <button className="db-btn db-btn-primary" onClick={() => setUserModal({ editing: null })}>
+              ＋ Thêm tài khoản
+            </button>
+          )}
         </div>
       </div>
 
@@ -749,69 +822,107 @@ function AccountsPage({ users, setUsers, toast }) {
             <thead>
               <tr>
                 <th>#</th>
-                <th>Tên đăng nhập</th>
+                {isAdmin && <th>Tên đăng nhập</th>}
                 <th>Họ và tên</th>
-                <th>Vai trò</th>
-                <th>Trạng thái</th>
+                {isAdmin && <th>Vai trò</th>}
+                {isAdmin && <th>Ngày tạo</th>}
                 <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={isAdmin ? 6 : 3}>
                     <div className="db-empty-state"><div>👥</div><p>Không tìm thấy tài khoản nào.</p></div>
                   </td>
                 </tr>
               ) : (
-                filtered.map((u, i) => (
-                  <tr key={u.id}>
-                    <td style={{ color: "#aab4cc", fontSize: 12 }}>{i + 1}</td>
-                    <td>
-                      <div className="db-user-cell">
-                        <div className="db-user-avatar" style={avatarStyle(u.role)}>
-                          {u.username[0].toUpperCase()}
+                filtered.map((u, i) => {
+                  const isOwnRow = u.id === currentUser?.id;
+                  const canEdit = isAdmin || isOwnRow;
+                  const canDelete = isAdmin ? u.id !== currentUser?.id : isOwnRow;
+                  return (
+                    <tr key={u.id}>
+                      <td style={{ color: "#aab4cc", fontSize: 12 }}>{i + 1}</td>
+
+                      {/* Username – admin only */}
+                      {isAdmin && (
+                        <td>
+                          <div className="db-user-cell">
+                            <div className="db-user-avatar" style={avatarStyle(u.role)}>
+                              {(u.username || u.name || "?")[0].toUpperCase()}
+                            </div>
+                            <span style={{ fontWeight: 500 }}>{u.username}</span>
+                            {isOwnRow && (
+                              <span style={{
+                                fontSize: 10, background: "#eef3ff", color: "#2777fc",
+                                borderRadius: 4, padding: "1px 6px", marginLeft: 4,
+                              }}>Bạn</span>
+                            )}
+                          </div>
+                        </td>
+                      )}
+
+                      {/* Name – everyone sees */}
+                      <td>
+                        <div className="db-user-cell">
+                          {!isAdmin && (
+                            <div className="db-user-avatar" style={avatarStyle(u.role)}>
+                              {(u.name || "?")[0].toUpperCase()}
+                            </div>
+                          )}
+                          <span style={isOwnRow ? { fontWeight: 600 } : {}}>
+                            {u.name || "–"}
+                            {isOwnRow && !isAdmin && (
+                              <span style={{
+                                fontSize: 10, background: "#eef3ff", color: "#2777fc",
+                                borderRadius: 4, padding: "1px 6px", marginLeft: 6,
+                              }}>Bạn</span>
+                            )}
+                          </span>
                         </div>
-                        <span style={{ fontWeight: 500 }}>{u.username}</span>
-                      </div>
-                    </td>
-                    <td>{u.fullname || "–"}</td>
-                    <td>
-                      <span className={`db-badge ${u.role === "admin" ? "db-badge-admin" : "db-badge-user"}`}>
-                        <span className="db-badge-dot"
-                          style={{ background: u.role === "admin" ? "#7c3aed" : "#2777fc" }} />
-                        {u.role === "admin" ? "Quản trị viên" : "Người dùng"}
-                      </span>
-                    </td>
-                    <td>
-                      <span style={{
-                        display: "inline-flex", alignItems: "center", gap: 5,
-                        fontSize: 12, fontWeight: 500,
-                        color: u.active ? "#16a34a" : "#aab4cc",
-                      }}>
-                        <span style={{
-                          width: 6, height: 6, borderRadius: "50%",
-                          background: u.active ? "#16a34a" : "#ddd",
-                        }} />
-                        {u.active ? "Hoạt động" : "Vô hiệu hóa"}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="db-td-actions">
-                        {currentRole === "admin" && (
-                          <button className="db-btn db-btn-secondary db-btn-sm"
-                            onClick={() => setUserModal({ editing: u })}>✏️ Sửa</button>
-                        )}
-                        <button className="db-btn db-btn-warning db-btn-sm"
-                          onClick={() => setChangePwModal(u)}>🔑 Đổi MK</button>
-                        {currentRole === "admin" && u.username !== "admin" && (
-                          <button className="db-btn db-btn-danger db-btn-sm"
-                            onClick={() => deleteUser(u)}>🗑</button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+
+                      {/* Role badge – admin only */}
+                      {isAdmin && (
+                        <td>
+                          <span className={`db-badge ${u.role === 1 ? "db-badge-admin" : "db-badge-user"}`}>
+                            <span className="db-badge-dot"
+                              style={{ background: u.role === 1 ? "#7c3aed" : "#2777fc" }} />
+                            {u.role === 1 ? "Quản trị viên" : "Giáo viên"}
+                          </span>
+                        </td>
+                      )}
+
+                      {/* Created at – admin only */}
+                      {isAdmin && (
+                        <td style={{ color: "#8892a4", fontSize: 12 }}>
+                          {u.created_at
+                            ? new Date(u.created_at).toLocaleDateString("vi-VN")
+                            : "–"}
+                        </td>
+                      )}
+
+                      {/* Actions */}
+                      <td>
+                        <div className="db-td-actions">
+                          {canEdit && (
+                            <button className="db-btn db-btn-secondary db-btn-sm"
+                              onClick={() => setUserModal({ editing: u })}>✏️ Sửa</button>
+                          )}
+                          {isOwnRow && (
+                            <button className="db-btn db-btn-warning db-btn-sm"
+                              onClick={() => setChangePwModal(u)}>🔑 Đổi MK</button>
+                          )}
+                          {canDelete && (
+                            <button className="db-btn db-btn-danger db-btn-sm"
+                              onClick={() => handleDeleteUser(u)}>🗑</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -821,6 +932,7 @@ function AccountsPage({ users, setUsers, toast }) {
       {userModal && (
         <UserModal
           data={userModal.editing}
+          canEditRole={isAdmin}
           onClose={() => setUserModal(null)}
           onSave={saveUser}
         />
@@ -835,7 +947,7 @@ function AccountsPage({ users, setUsers, toast }) {
       {confirm && (
         <ConfirmModal
           data={confirm}
-          onConfirm={() => { confirm.fn(); setConfirm(null); }}
+          onConfirm={async () => { await confirm.fn(); setConfirm(null); }}
           onCancel={() => setConfirm(null)}
         />
       )}
@@ -850,8 +962,10 @@ const PAGE_TITLES = {
   accounts: "Quản lý tài khoản",
 };
 
-function Topbar({ activePage }) {
+function Topbar({ activePage, currentUser }) {
   const navigate = useNavigate();
+  const displayName = currentUser?.name || currentUser?.username || "Giáo viên";
+  const roleLabel = currentUser?.role === 1 ? "Quản trị viên" : "Giáo viên";
   return (
     <header className="db-topbar">
       <div className="db-topbar-left">
@@ -865,20 +979,35 @@ function Topbar({ activePage }) {
           🤖 Chatbot
         </button>
         <div className="db-topbar-user-info">
-          <div className="db-topbar-user-name">Quản trị viên</div>
-          <div className="db-topbar-user-role">Administrator</div>
+          <div className="db-topbar-user-name">{displayName}</div>
+          <div className="db-topbar-user-role">{roleLabel}</div>
         </div>
-        <div className="db-topbar-avatar" title="Admin">A</div>
+        <div className="db-topbar-avatar" title={currentUser?.username}>
+          {displayName[0].toUpperCase()}
+        </div>
       </div>
     </header>
   );
 }
 
 // ─── DashboardMain ────────────────────────────────────────────────────────────
-const DashboardMain = ({ activePage, onLogout }) => {
+const DashboardMain = ({ activePage }) => {
+  const currentUser = (() => {
+    try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
+  })();
   const [subjects, setSubjects] = useState(INITIAL_SUBJECTS);
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState([]);
   const { toasts, show: showToast, remove: removeToast } = useToast();
+
+  // ── GET /users on mount ───────────────────────────────────────────────────
+  useEffect(() => {
+    getUsers()
+      .then((res) => {
+        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+        setUsers(list);
+      })
+      .catch(() => showToast("Không thể tải danh sách tài khoản!", "error"));
+  }, [showToast]);
 
   const renderPage = () => {
     switch (activePage) {
@@ -887,7 +1016,7 @@ const DashboardMain = ({ activePage, onLogout }) => {
       case "subjects":
         return <SubjectsPage subjects={subjects} setSubjects={setSubjects} toast={showToast} />;
       case "accounts":
-        return <AccountsPage users={users} setUsers={setUsers} toast={showToast} />;
+        return <AccountsPage users={users} setUsers={setUsers} currentUser={currentUser} toast={showToast} />;
       default:
         return <OverviewPage subjects={subjects} users={users} />;
     }
@@ -895,7 +1024,7 @@ const DashboardMain = ({ activePage, onLogout }) => {
 
   return (
     <div className="db-main">
-      <Topbar activePage={activePage} onLogout={onLogout} />
+      <Topbar activePage={activePage} currentUser={currentUser} />
       {renderPage()}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
