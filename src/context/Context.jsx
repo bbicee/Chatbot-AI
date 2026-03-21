@@ -1,98 +1,141 @@
-import { useState, useRef } from "react";
-import runChat, { resetChatHistory, stopChat } from "../config/chatbot";
+import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  createConversation,
+  listConversations,
+  getMessages,
+  deleteConversation as apiDeleteConversation,
+  updateConversationTitle,
+  streamChat,
+  streamQuiz,
+} from "../config/chatApi";
 import { Context } from "./ContextDef";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "hca_conversations";
-
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveToStorage(conversations) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
-  } catch {
-    // Bỏ qua lỗi storage đầy
-  }
+function getStoredUser() {
+  try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
 }
 
 // ─── Context Provider ──────────────────────────────────────────────────────────
 
 const ContextProvider = ({ children }) => {
-  const [input, setInput]               = useState("");
-  const [messages, setMessages]         = useState([]);
+  const [input, setInput]                 = useState("");
+  const [messages, setMessages]           = useState([]);
   const [streamingText, setStreamingText] = useState("");
-  const [loading, setLoading]           = useState(false);
-  const [conversations, setConversations] = useState(loadFromStorage);
-  const [activeConvId, setActiveConvId] = useState(null);
+  const [loading, setLoading]             = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [activeConvId, setActiveConvId]   = useState(null);
+  const [isQuizMode, setIsQuizMode]       = useState(false);
 
-  // Dùng ref để đọc activeConvId bên trong async mà không bị stale closure
-  const activeConvIdRef = useRef(null);
-  // Tăng mỗi khi user chuyển chat → dùng để huỷ kết quả stream cũ
+  const activeConvIdRef    = useRef(null);
   const streamingSessionRef = useRef(0);
-
-  // ─── Helpers nội bộ ──────────────────────────────────────────────────────────
+  const abortControllerRef  = useRef(null);
 
   function setActiveConv(id) {
     activeConvIdRef.current = id;
     setActiveConvId(id);
   }
 
-  function updateConversations(updater) {
-    setConversations((prev) => {
-      const updated = updater(prev);
-      saveToStorage(updated);
-      return updated;
-    });
-  }
+  // ─── Load conversations from backend on mount ─────────────────────────────
+
+  const loadConversations = useCallback(async () => {
+    try {
+      const user = getStoredUser();
+      const data = await listConversations(user?.id);
+      setConversations(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("[conversations] load failed:", err.message);
+    }
+  }, []);
+
+  useEffect(() => { loadConversations(); }, [loadConversations]);
 
   // ─── Actions ─────────────────────────────────────────────────────────────────
 
   const newChat = () => {
-    stopChat();
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     streamingSessionRef.current++;
-    resetChatHistory();
     setMessages([]);
     setStreamingText("");
     setLoading(false);
     setInput("");
     setActiveConv(null);
+    setIsQuizMode(false);
   };
 
-  const loadConversation = (conv) => {
-    stopChat();
+  const newQuizChat = () => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     streamingSessionRef.current++;
-    setActiveConv(conv.id);
-    setMessages(conv.messages ?? []);
+    setMessages([]);
     setStreamingText("");
     setLoading(false);
+    setInput("");
+    setActiveConv(null);
+    setIsQuizMode(true);
   };
 
-  const deleteConversation = (id) => {
-    updateConversations((prev) => prev.filter((c) => c.id !== id));
-    if (activeConvIdRef.current === id) {
-      setActiveConv(null);
+  const loadConversation = async (conv) => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    streamingSessionRef.current++;
+    setActiveConv(conv.id);
+    setStreamingText("");
+    setLoading(false);
+    // Restore quiz mode from the saved conversation type
+    setIsQuizMode(conv.type === "quiz");
+    try {
+      const msgs = await getMessages(conv.id);
+      setMessages(msgs.map((m) => ({ role: m.role === "assistant" ? "bot" : "user", text: m.content })));
+    } catch {
       setMessages([]);
-      setStreamingText("");
     }
   };
 
-  const onSent = async (prompt) => {
+  const deleteConversation = async (id) => {
+    try {
+      await apiDeleteConversation(id);
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeConvIdRef.current === id) {
+        setActiveConv(null);
+        setMessages([]);
+        setStreamingText("");
+      }
+    } catch (err) {
+      console.error("[conversations] delete failed:", err.message);
+    }
+  };
+
+  const stopChat = () => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+  };
+
+  // ─── onGenerateQuiz: sends to /chat/quiz endpoint ────────────────────────────
+
+  const onGenerateQuiz = async (prompt) => {
     const currentPrompt = typeof prompt === "string" ? prompt : input;
     if (!currentPrompt || loading) return;
 
-    // Chụp session & conv gốc tại thời điểm bắt đầu gửi
-    const sessionId  = streamingSessionRef.current;
-    // Nếu conv hiện tại chưa có id → pre-generate ngay để dùng trong finally
-    const originConvId = activeConvIdRef.current ?? Date.now().toString();
-    const isNewConv    = activeConvIdRef.current === null;
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const sessionId  = ++streamingSessionRef.current;
+    let convId       = activeConvIdRef.current;
+    const isNewConv  = convId === null;
+
+    if (isNewConv) {
+      try {
+        const user  = getStoredUser();
+        const conv  = await createConversation(user?.id, 'quiz');
+        convId      = conv.id;
+        const title = `[Quiz] ${currentPrompt.slice(0, 50)}`;
+        setActiveConv(convId);
+        setConversations((prev) => [{ id: convId, title, type: 'quiz', created_at: conv.created_at, updated_at: conv.updated_at }, ...prev]);
+        updateConversationTitle(convId, title).catch(() => {});
+      } catch (err) {
+        console.error("[quiz] create conversation failed:", err.message);
+        return;
+      }
+    }
 
     setInput("");
     setStreamingText("");
@@ -100,45 +143,93 @@ const ContextProvider = ({ children }) => {
     setMessages((prev) => [...prev, { role: "user", text: currentPrompt }]);
 
     let botReply = "";
-
+    let isError = false;
     try {
       let isFirstChunk = true;
-      for await (const chunk of runChat(currentPrompt)) {
-        // User đã chuyển sang chat khác → dừng ngay, không update UI
+      for await (const chunk of streamQuiz(convId, currentPrompt, controller.signal)) {
         if (streamingSessionRef.current !== sessionId) break;
         if (isFirstChunk) { setLoading(false); isFirstChunk = false; }
         botReply += chunk;
         setStreamingText(botReply);
       }
     } catch (err) {
-      console.error("Lỗi trong onSent:", err);
-      botReply = "Lỗi kết nối. Vui lòng thử lại.";
+      if (err.name !== "AbortError") {
+        console.error("[quiz] streaming error:", err.message);
+        botReply = botReply || "⚠️ Hệ thống đang gặp sự cố, vui lòng thử lại sau.";
+        isError = true;
+      }
       setLoading(false);
     } finally {
-      const botMessage = { role: "bot", text: botReply };
-      const userNavigatedAway = streamingSessionRef.current !== sessionId;
-
-      if (!userNavigatedAway) {
-        // User vẫn ở đây → update UI bình thường
-        setMessages((prev) => [...prev, botMessage]);
+      if (streamingSessionRef.current === sessionId) {
+        setMessages((prev) => [...prev, { role: "bot", text: botReply, isError }]);
         setStreamingText("");
+        setLoading(false);
+        setConversations((prev) =>
+          prev.map((c) => c.id === convId ? { ...c, updated_at: new Date().toISOString() } : c)
+        );
       }
+    }
+  };
 
-      // Luôn lưu vào conversation gốc dù user đã đi hay chưa
-      if (isNewConv) {
-        if (!userNavigatedAway) setActiveConv(originConvId);
-        updateConversations((prev) => [{
-          id: originConvId,
-          prompt: currentPrompt,
-          messages: [{ role: "user", text: currentPrompt }, botMessage],
-        }, ...prev]);
-      } else {
-        updateConversations((prev) =>
-          prev.map((c) =>
-            c.id === originConvId
-              ? { ...c, messages: [...(c.messages ?? []), { role: "user", text: currentPrompt }, botMessage] }
-              : c
-          )
+  const onSent = async (prompt) => {
+    const currentPrompt = typeof prompt === "string" ? prompt : input;
+    if (!currentPrompt || loading) return;
+
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const sessionId  = ++streamingSessionRef.current;
+    let convId       = activeConvIdRef.current;
+    const isNewConv  = convId === null;
+
+    // Create a new conversation on the backend when starting fresh
+    if (isNewConv) {
+      try {
+        const user  = getStoredUser();
+        const conv  = await createConversation(user?.id);
+        convId      = conv.id;
+        const title = currentPrompt.slice(0, 60);
+        setActiveConv(convId);
+        setConversations((prev) => [{ id: convId, title, created_at: conv.created_at, updated_at: conv.updated_at }, ...prev]);
+        // Update title asynchronously — don't block the chat
+        updateConversationTitle(convId, title).catch(() => {});
+      } catch (err) {
+        console.error("[conversations] create failed:", err.message);
+        return;
+      }
+    }
+
+    setInput("");
+    setStreamingText("");
+    setLoading(true);
+    setMessages((prev) => [...prev, { role: "user", text: currentPrompt }]);
+
+    let botReply = "";
+    let isError = false;
+    try {
+      let isFirstChunk = true;
+      for await (const chunk of streamChat(convId, currentPrompt, controller.signal)) {
+        if (streamingSessionRef.current !== sessionId) break;
+        if (isFirstChunk) { setLoading(false); isFirstChunk = false; }
+        botReply += chunk;
+        setStreamingText(botReply);
+      }
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        console.error("[chat] streaming error:", err.message);
+        botReply = botReply || "⚠️ Hệ thống đang gặp sự cố, vui lòng thử lại sau.";
+        isError = true;
+      }
+      setLoading(false);
+    } finally {
+      if (streamingSessionRef.current === sessionId) {
+        setMessages((prev) => [...prev, { role: "bot", text: botReply, isError }]);
+        setStreamingText("");
+        setLoading(false);
+        // Bubble conversation to top with fresh updated_at
+        setConversations((prev) =>
+          prev.map((c) => c.id === convId ? { ...c, updated_at: new Date().toISOString() } : c)
         );
       }
     }
@@ -148,11 +239,12 @@ const ContextProvider = ({ children }) => {
 
   return (
     <Context.Provider value={{
-      input, setInput,
+    input, setInput,
       messages, streamingText, loading,
       conversations, activeConvId,
-      onSent, newChat, loadConversation, deleteConversation,
-      stopChat,
+      isQuizMode, setIsQuizMode,
+      onSent, onGenerateQuiz, newChat, newQuizChat, loadConversation, deleteConversation, stopChat,
+      refreshConversations: loadConversations,
     }}>
       {children}
     </Context.Provider>

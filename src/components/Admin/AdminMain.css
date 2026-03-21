@@ -566,7 +566,20 @@
 
 .db-file-icon { color: #e53935; font-size: 14px; }
 .db-file-name { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.db-file-size { color: #aab4cc; font-size: 11px; white-space: nowrap; }
+.db-file-size {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+  background: #f0f4ff;
+  color: #7c3aed;
+  white-space: nowrap;
+}
+.db-file-size[data-type="PDF"]  { background: #fff0f0; color: #e53935; }
+.db-file-size[data-type="DOCX"] { background: #e8f0fe; color: #2777fc; }
+.db-file-size[data-type="TXT"]  { background: #e6faf5; color: #0d9488; }
 
 .db-file-delete-btn {
   background: none;
@@ -581,6 +594,20 @@
 }
 
 .db-file-delete-btn:hover { color: #e53935; background: #ffeaea; }
+
+.db-file-edit-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.db-file-edit-btn:hover { color: #2777fc; background: #e8f0fe; }
 
 .db-chapter-add-row {
   display: flex;
@@ -896,6 +923,213 @@
   font-size: 14px;
   cursor: pointer;
   padding: 0;
+}
+
+/* ===== DOCUMENTS PAGE ===== */
+.db-docs-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  height: 100%;
+}
+
+.db-docs-sidebar {
+  width: 280px;
+  min-width: 240px;
+  background: #fff;
+  border-right: 1px solid #e4eaf5;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.db-docs-sidebar::-webkit-scrollbar { width: 4px; }
+.db-docs-sidebar::-webkit-scrollbar-thumb { background: #d0e0ff; border-radius: 10px; }
+
+.db-docs-sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2777fc;
+  border-bottom: 1px solid #e4eaf5;
+  flex-shrink: 0;
+}
+
+.db-docs-count {
+  background: #e8f0fe;
+  color: #2777fc;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.db-docs-hint {
+  padding: 12px 16px;
+  color: #a0aec0;
+  font-size: 13px;
+}
+
+.db-docs-subject {
+  border-bottom: 1px solid #f0f4ff;
+}
+
+.db-docs-subject-header,
+.db-docs-chapter-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.db-docs-subject-header:hover { background: #f2f7ff; }
+.db-docs-subject-header.open { background: #edf3ff; color: #2777fc; }
+
+.db-docs-chapter-header {
+  padding-left: 26px;
+  font-weight: 500;
+  color: #374151;
+  background: #f8faff;
+}
+.db-docs-chapter-header:hover { background: #edf3ff; }
+.db-docs-chapter-header.open { color: #2777fc; }
+
+.db-docs-arrow {
+  font-size: 10px;
+  width: 14px;
+  color: #8892a4;
+}
+
+.db-docs-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-docs-badge {
+  background: #e8f0fe;
+  color: #2777fc;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.db-docs-file-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px 7px 42px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: #374151;
+  transition: background 0.15s;
+}
+
+.db-docs-file-item:hover { background: #f2f7ff; }
+
+.db-docs-file-item.active {
+  background: #e8f0fe;
+  color: #2777fc;
+  font-weight: 600;
+}
+
+.db-docs-file-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-docs-file-type {
+  background: #f0f4ff;
+  color: #7c3aed;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.db-docs-file-type[data-type="PDF"]  { background: #fff0f0; color: #e53935; }
+.db-docs-file-type[data-type="DOCX"] { background: #e8f0fe; color: #2777fc; }
+.db-docs-file-type[data-type="TXT"]  { background: #e6faf5; color: #0d9488; }
+
+.db-docs-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f7f9ff;
+}
+
+.db-docs-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e4eaf5;
+  flex-shrink: 0;
+}
+
+.db-docs-content-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-docs-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+
+.db-docs-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  text-align: center;
+}
+
+.db-docs-empty-icon {
+  font-size: 52px;
+  opacity: 0.5;
+  margin-bottom: 6px;
+}
+
+.db-docs-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.db-docs-empty-hint {
+  font-size: 13px;
+  color: #8892a4;
+  max-width: 340px;
+  line-height: 1.6;
 }
 
 /* ===== RESPONSIVE ===== */

@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { conversations, newChat, loadConversation, deleteConversation, activeConvId } = useContext(Context);
+  const { conversations, newChat, newQuizChat, loadConversation, deleteConversation, activeConvId } = useContext(Context);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,6 +15,11 @@ const Sidebar = () => {
 
   const handleNewChat = () => {
     newChat();
+    navigate("/chatbot", { replace: true });
+  };
+
+  const handleNewQuizChat = () => {
+    newQuizChat();
     navigate("/chatbot", { replace: true });
   };
 
@@ -42,6 +47,12 @@ const Sidebar = () => {
           <span className="nav-label">Cuộc trò chuyện mới</span>
         </div>
 
+        {/* NEW QUIZ */}
+        <div className="new-quiz-btn" onClick={handleNewQuizChat}>
+          <span className="new-quiz-icon">🎯</span>
+          <span className="nav-label">Tạo trắc nghiệm mới</span>
+        </div>
+
         {/* TRANG TÀI LIỆU */}
         <div className={`nav-item ${isDocsMode ? "active" : ""}`} onClick={() => navigate("/documents")}>
           <span className="nav-emoji">📁</span>
@@ -54,9 +65,13 @@ const Sidebar = () => {
             <div className="divider" />
             <p className="recent-title">Gần đây</p>
             {conversations.slice(0, 8).map((conv) => (
-              <div key={conv.id} className={`recent-entry ${conv.id === activeConvId ? "active" : ""}`} onClick={() => handleLoadPrompt(conv)}>
-                <img src={assets.message_icon} alt="" />
-                <span className="nav-label">{conv.prompt.slice(0, 24)}{conv.prompt.length > 24 ? "…" : ""}</span>
+              <div
+                key={conv.id}
+                className={`recent-entry ${conv.id === activeConvId ? "active" : ""} ${conv.type === "quiz" ? "quiz-entry" : ""}`}
+                onClick={() => handleLoadPrompt(conv)}
+              >
+                <span className="entry-icon">{conv.type === "quiz" ? "🎯" : "💬"}</span>
+                <span className="nav-label">{(conv.title || 'Cuộc trò chuyện').replace(/^\[Quiz\]\s*/,'').slice(0, 24)}{(conv.title || '').replace(/^\[Quiz\]\s*/,'').length > 24 ? "…" : ""}</span>
                 <button
                   className="delete-conv-btn"
                   onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}

@@ -107,8 +107,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<RedirectToStaticHome />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/chatbot" element={<ProtectedRoute><ChatbotLayout /></ProtectedRoute>} />
-        <Route path="/documents" element={<ProtectedRoute><ChatbotLayout /></ProtectedRoute>} />
+        <Route path="/chatbot" element={<ChatbotLayout />} />
+        <Route path="/documents" element={<ChatbotLayout />} />
         <Route path="/admin" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>} />
       </Routes>
     </Router>

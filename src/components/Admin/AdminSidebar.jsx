@@ -45,6 +45,15 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
           <span className="nav-icon">👥</span>
           <span className="nav-label">Quản lý tài khoản</span>
         </button>
+
+        <div className="db-nav-section-label" style={{ marginTop: 6 }}>Tài liệu</div>
+        <button
+          className={`nav-item ${activePage === "documents" ? "active" : ""}`}
+          onClick={() => onNavigate("documents")}
+        >
+          <span className="nav-icon">📖</span>
+          <span className="nav-label">Xem tài liệu</span>
+        </button>
       </div>
 
       {/* BOTTOM */}

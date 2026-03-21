@@ -4,41 +4,9 @@ import { assets } from "../../assets/assets";
 import { Context } from "../../context/ContextDef";
 import ReactMarkdown from "react-markdown";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 
-// ─── Static data ───────────────────────────────────────────────────────────────
-
-const DOCUMENT_DATA = [
-  {
-    id: 1,
-    title: "Chương 1",
-    files: [
-      { id: 101, name: "Bài giảng",       url: "/data/pdfs/C1/chuong1.pdf" },
-      { id: 102, name: "Bài thực hành",   url: "/data/pdfs/C1/thuchanh_chuong1.pdf" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Chương 2",
-    files: [
-      { id: 201, name: "Bài 1", url: "/data/pdfs/C2/bai1.pdf" },
-      { id: 202, name: "Bài 2", url: "/data/pdfs/C2/bai2.pdf" },
-      { id: 203, name: "Bài 3", url: "/data/pdfs/C2/bai3.pdf" },
-      { id: 204, name: "Bài 4", url: "/data/pdfs/C2/bai4.pdf" },
-      { id: 205, name: "Bài 5", url: "/data/pdfs/C2/bai5.pdf" },
-      { id: 206, name: "Bài 6", url: "/data/pdfs/C2/bai6.pdf" },
-    ],
-  },
-  {
-    id: 3,
-    title: "Chương 3",
-    files: [
-      { id: 301, name: "Bài 1", url: "/data/pdfs/C3/bai1.pdf" },
-      { id: 302, name: "Bài 2", url: "/data/pdfs/C3/bai2.pdf" },
-      { id: 303, name: "Bài 3", url: "/data/pdfs/C3/bai3.pdf" },
-      { id: 304, name: "Bài 4", url: "/data/pdfs/C3/bai4.pdf" },
-    ],
-  },
-];
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const SUGGESTIONS = [
   { text: "Hướng dẫn cách sử dụng Excel để tổng hợp và phân tích dữ liệu",            icon: assets.compass_icon },
@@ -81,8 +49,8 @@ function ChatMessage({ msg }) {
       ) : (
         <>
           <div className="bot-icon">AI</div>
-          <div className="msg-bubble bot-bubble">
-            <ReactMarkdown>{msg.text}</ReactMarkdown>
+          <div className={`msg-bubble ${msg.isError ? "error-bubble" : "bot-bubble"}`}>
+            {msg.isError ? msg.text : <ReactMarkdown>{msg.text}</ReactMarkdown>}
           </div>
         </>
       )}
@@ -105,16 +73,30 @@ function StreamingMessage({ text, isLoading }) {
   );
 }
 
-function InputBar({ input, onChange, onSend, onStop, onKeyDown, isStreaming }) {
+function InputBar({ input, onChange, onSend, onStop, onKeyDown, isStreaming, isQuizMode }) {
+  const textareaRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }, [input]);
+
+  const handleChange = (e) => {
+    onChange(e);
+  };
+
   return (
     <div className="input-area">
       <div className="input-box">
         <textarea
+          ref={textareaRef}
           rows={1}
           className="chat-input"
-          placeholder="Nhập câu hỏi về môn Tin học..."
+          placeholder={isQuizMode ? "Nhập tên môn học hoặc chủ đề cần tạo câu hỏi..." : "Hỏi bất kỳ điều gì về các môn học..."}
           value={input}
-          onChange={onChange}
+          onChange={handleChange}
           onKeyDown={onKeyDown}
         />
         {isStreaming ? (
@@ -131,27 +113,105 @@ function InputBar({ input, onChange, onSend, onStop, onKeyDown, isStreaming }) {
           </button>
         )}
       </div>
-      <p className="input-hint">HCA có thể mắc sai sót. Vui lòng xác minh thông tin quan trọng.</p>
+      <p className="input-hint">
+        {isQuizMode
+          ? "Chế độ trắc nghiệm: mặc định 20 câu hỏi — gõ số câu vào yêu cầu nếu muốn thay đổi."
+          : "HCA có thể mắc sai sót. Vui lòng xác minh thông tin quan trọng."}
+      </p>
     </div>
   );
 }
 
 function DocumentsView() {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openSubjects, setOpenSubjects] = useState(new Set());
+  const [openChapters, setOpenChapters] = useState(new Set());
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [{ data: subjectsData }, { data: chaptersData }, { data: filesData }] = await Promise.all([
+          axios.get(`${API_BASE}/subjects`),
+          axios.get(`${API_BASE}/chapters`),
+          axios.get(`${API_BASE}/files`),
+        ]);
+        const nested = subjectsData.map((s) => ({
+          ...s,
+          chapters: chaptersData
+            .filter((c) => c.subject_id === s.id)
+            .map((c) => ({
+              ...c,
+              files: filesData.filter((f) => f.chapter_id === c.id),
+            })),
+        }));
+        setSubjects(nested);
+        setOpenSubjects(new Set(subjectsData.map((s) => s.id)));
+        setOpenChapters(new Set(chaptersData.map((c) => c.id)));
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const toggleSubject = (id) =>
+    setOpenSubjects((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const toggleChapter = (id) =>
+    setOpenChapters((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const totalFiles = subjects.reduce((a, s) => a + s.chapters.reduce((b, c) => b + c.files.length, 0), 0);
+
   return (
     <div className="docs-view">
       <div className="docs-sidebar">
-        <h3>Môn học</h3>
-        {DOCUMENT_DATA.map((chapter) => (
-          <div key={chapter.id} className="chapter-group">
-            <p className="chapter-name">📂 {chapter.title}</p>
-            {chapter.files.map((file) => (
-              <div
-                key={file.id}
-                className={`doc-item ${selectedFile?.id === file.id ? "doc-item-active" : ""}`}
-                onClick={() => setSelectedFile(file)}
-              >
-                📄 {file.name}
+        <div className="docs-sidebar-heading">
+          <span>📖 Tài liệu học tập</span>
+          {!loading && <span className="docs-count">{totalFiles} tài liệu</span>}
+        </div>
+
+        {loading && <p className="docs-hint">Đang tải...</p>}
+        {!loading && subjects.length === 0 && (
+          <p className="docs-hint">Chưa có tài liệu nào.</p>
+        )}
+
+        {subjects.map((subject) => (
+          <div key={subject.id}>
+            <div
+              className={`docs-subject-header ${openSubjects.has(subject.id) ? "open" : ""}`}
+              onClick={() => toggleSubject(subject.id)}
+            >
+              <span className="docs-arrow">{openSubjects.has(subject.id) ? "▾" : "▸"}</span>
+              <span>📚</span>
+              <span className="docs-label">{subject.name}</span>
+              <span className="docs-badge">{subject.chapters.reduce((a, c) => a + c.files.length, 0)}</span>
+            </div>
+
+            {openSubjects.has(subject.id) && subject.chapters.map((chapter) => (
+              <div key={chapter.id}>
+                <div
+                  className={`docs-chapter-header ${openChapters.has(chapter.id) ? "open" : ""}`}
+                  onClick={() => toggleChapter(chapter.id)}
+                >
+                  <span className="docs-arrow">{openChapters.has(chapter.id) ? "▾" : "▸"}</span>
+                  <span>📂</span>
+                  <span className="docs-label">{chapter.name}</span>
+                  <span className="docs-badge">{chapter.files.length}</span>
+                </div>
+
+                {openChapters.has(chapter.id) && chapter.files.map((file) => (
+                  <div
+                    key={file.id}
+                    className={`doc-item ${selectedFile?.id === file.id ? "doc-item-active" : ""}`}
+                    onClick={() => setSelectedFile(file)}
+                  >
+                    <span>📄</span>
+                    <span className="docs-file-name">{file.file_name}</span>
+                    <span className="docs-file-type" data-type={file.file_type?.toUpperCase()}>{file.file_type?.toUpperCase()}</span>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
@@ -162,17 +222,35 @@ function DocumentsView() {
         {selectedFile ? (
           <>
             <div className="docs-header">
-              <span>📄 {selectedFile.name}</span>
-              <button className="close-btn" onClick={() => setSelectedFile(null)}>✕ Đóng</button>
+              <span>📄 {selectedFile.file_name}</span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <a
+                  href={selectedFile.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="docs-open-btn"
+                >
+                  ↗ Mở tab mới
+                </a>
+                <button className="close-btn" onClick={() => setSelectedFile(null)}>✕ Đóng</button>
+              </div>
             </div>
-            <iframe src={selectedFile.url} title={selectedFile.name} className="pdf-frame" />
+            <iframe
+              src={
+                selectedFile.file_type === "docx"
+                  ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedFile.file_url)}`
+                  : selectedFile.file_url
+              }
+              title={selectedFile.file_name}
+              className="pdf-frame"
+            />
           </>
         ) : (
           <div className="docs-empty">
             <div className="docs-empty-inner">
               <div className="docs-empty-icon">📖</div>
-              <p>Chọn một tài liệu để bắt đầu</p>
-              <span>Chọn tài liệu từ danh sách bên trái để xem nội dung.</span>
+              <p>Chọn một tài liệu để xem</p>
+              <span>Mở rộng môn học và chương từ danh sách bên trái, sau đó nhấn vào tài liệu để xem nội dung.</span>
             </div>
           </div>
         )}
@@ -184,7 +262,7 @@ function DocumentsView() {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 const Main = () => {
-  const { onSent, setInput, input, messages, streamingText, loading, stopChat } = useContext(Context);
+  const { onSent, onGenerateQuiz, setInput, input, messages, streamingText, loading, stopChat, isQuizMode } = useContext(Context);
   const messagesRef = useRef(null);
   const location = useLocation();
 
@@ -201,7 +279,8 @@ const Main = () => {
 
   const handleSend = () => {
     if (!input.trim()) return;
-    onSent(input);
+    if (isQuizMode) onGenerateQuiz(input);
+    else onSent(input);
   };
 
   const handleKeyDown = (e) => {
@@ -219,6 +298,7 @@ const Main = () => {
           {isDocsMode ? "📚 Tài liệu học tập" : <><span className="brand-dot" />HCA Chatbot</>}
         </span>
         <div className="topbar-right">
+          <a href="/admin" className="topbar-admin-btn">👨‍🏫 Quản lý</a>
           <a href="/home.html" className="topbar-back-btn">← Trang chủ</a>
           <img src={assets.user_icon} alt="user" className="avatar" />
         </div>
@@ -227,9 +307,19 @@ const Main = () => {
       {/* Chat view */}
       {!isDocsMode && (
         <div className="chat-view">
+          {/* Quiz mode info banner */}
+          {isQuizMode && (
+            <div className="quiz-info-banner">
+              <span className="quiz-info-icon">🎯</span>
+              <span>
+                <strong>Chế độ Tạo Trắc nghiệm</strong> — Hệ thống chỉ hỗ trợ tạo câu hỏi trắc nghiệm về các chủ đề học thuật.
+                Mặc định <strong>20 câu hỏi</strong> — thay đổi bằng cách gõ số câu vào yêu cầu (ví dụ: “Tạo 10 câu về SQL”).
+              </span>
+            </div>
+          )}
           <div className="messages" ref={messagesRef}>
             {!hasMessages ? (
-              <WelcomeScreen onSuggest={onSent} />
+              <WelcomeScreen onSuggest={(text) => isQuizMode ? onGenerateQuiz(text) : onSent(text)} />
             ) : (
               <div className="conversation">
                 {messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)}
@@ -245,6 +335,7 @@ const Main = () => {
             onStop={stopChat}
             onKeyDown={handleKeyDown}
             isStreaming={isStreaming}
+            isQuizMode={isQuizMode}
           />
         </div>
       )}

@@ -1,50 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUsers, createUser, updateUser, deleteUser } from "../../services/userService";
+import axios from "axios";
 import "./AdminMain.css";
 
-// ─── Initial Data ─────────────────────────────────────────────────────────────
-
-const INITIAL_SUBJECTS = [
-  {
-    id: 1, name: "Tin học đại cương", code: "CS101",
-    desc: "Giới thiệu các khái niệm cơ bản về máy tính và lập trình",
-    chapters: [
-      { id: 1, name: "Chương 1 – Giới thiệu máy tính", desc: "Tổng quan về phần cứng và phần mềm",
-        files: [{ name: "Giao_trinh_C1.pdf", size: "2.4 MB" }] },
-      { id: 2, name: "Chương 2 – Hệ điều hành", desc: "Windows, Linux và các khái niệm cơ bản",
-        files: [{ name: "HeDieuHanh_slides.pdf", size: "1.8 MB" }] },
-      { id: 3, name: "Chương 3 – Mạng máy tính", desc: "Giao thức và kết nối mạng", files: [] },
-    ],
-  },
-  {
-    id: 2, name: "Lập trình Python", code: "CS201",
-    desc: "Ngôn ngữ lập trình Python từ cơ bản đến nâng cao",
-    chapters: [
-      { id: 4, name: "Chương 1 – Cú pháp cơ bản", desc: "Biến, kiểu dữ liệu, câu lệnh điều kiện",
-        files: [{ name: "Python_C1_Lab.pdf", size: "3.1 MB" }, { name: "Python_C1_Slides.pdf", size: "1.2 MB" }] },
-      { id: 5, name: "Chương 2 – Hàm và Module", desc: "Định nghĩa hàm, modules và packages",
-        files: [{ name: "Python_C2.pdf", size: "2.0 MB" }] },
-    ],
-  },
-  {
-    id: 3, name: "Cơ sở dữ liệu", code: "CS301",
-    desc: "Thiết kế và quản lý cơ sở dữ liệu quan hệ",
-    chapters: [
-      { id: 6, name: "Chương 1 – Mô hình ER", desc: "Thiết kế mô hình thực thể liên kết",
-        files: [{ name: "CSDL_ER_Diagram.pdf", size: "1.5 MB" }] },
-      { id: 7, name: "Chương 2 – SQL cơ bản", desc: "Câu lệnh SELECT, INSERT, UPDATE, DELETE", files: [] },
-    ],
-  },
-];
-
-
-const INITIAL_ACTIVITY = [
-  { text: <>Tải lên PDF <strong>Chương 1 – Tin học đại cương</strong></>, time: "Hôm nay, 09:14", color: "#2777fc" },
-  { text: <>Thêm tài khoản mới <strong>nguyenvana</strong></>, time: "Hôm nay, 08:50", color: "#7c3aed" },
-  { text: <>Tạo môn học <strong>Cơ sở dữ liệu</strong></>, time: "Hôm qua, 15:30", color: "#16a34a" },
-  { text: <>Xóa chương <strong>Chương 4 – Mạng máy tính</strong></>, time: "Hôm qua, 11:05", color: "#ea580c" },
-];
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // ─── Toast Hook ───────────────────────────────────────────────────────────────
 function useToast() {
@@ -124,6 +84,37 @@ function LogoutModal({ open, onCancel, onConfirm }) {
 function OverviewPage({ subjects, users }) {
   const totalChapters = subjects.reduce((a, s) => a + s.chapters.length, 0);
   const totalFiles = subjects.reduce((a, s) => a + s.chapters.reduce((b, c) => b + c.files.length, 0), 0);
+  const [activity, setActivity] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${API_BASE}/activity?limit=10`)
+      .then(({ data }) => setActivity(data))
+      .catch(() => {});
+  }, []);
+
+  const formatTime = (isoStr) => {
+    // Supabase returns timestamps without timezone — append Z to treat as UTC
+    const d = new Date(isoStr.endsWith("Z") ? isoStr : isoStr + "Z");
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffMins < 1) return "Vừa xong";
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays === 1) return "Hôm qua";
+    return `${diffDays} ngày trước`;
+  };
+
+  const getActivityColor = (desc) => {
+    if (!desc) return "#8892a4";
+    if (desc.startsWith("Tải lên") || desc.startsWith("Tạo tài liệu")) return "#2777fc";
+    if (desc.startsWith("Tạo chương") || desc.startsWith("Cập nhật chương")) return "#7c3aed";
+    if (desc.startsWith("Tạo môn") || desc.startsWith("Cập nhật môn")) return "#16a34a";
+    if (desc.startsWith("Xóa")) return "#ea580c";
+    return "#8892a4";
+  };
 
   return (
     <div className="db-page-body">
@@ -132,13 +123,11 @@ function OverviewPage({ subjects, users }) {
         <div>
           <div className="db-ai-banner-title">Hệ thống RAG Chatbot – Powered by Gemini AI</div>
           <div className="db-ai-banner-desc">
-            Trợ lý học tập thông minh đọc tài liệu PDF được tải lên và trả lời câu hỏi dựa trên nội dung đó.
-            Quản lý môn học và tài liệu tại đây để cập nhật tri thức cho AI.
+            Trợ lý học tập thông minh trả lời theo ngữ cảnh dựa trên tài liệu môn học đã được tải lên. Hỗ trợ đắc lực cho sinh viên trong quá trình học tập và ôn luyện.
           </div>
           <div className="db-ai-tags">
             <span className="db-ai-tag">🧠 Gemini 2.5 Flash</span>
             <span className="db-ai-tag">🗄 RAG Pipeline</span>
-            <span className="db-ai-tag">📄 PDF Knowledge Base</span>
             <span className="db-ai-tag">🔢 Embeddings</span>
           </div>
         </div>
@@ -163,41 +152,24 @@ function OverviewPage({ subjects, users }) {
         </div>
       </div>
 
-      <div className="db-overview-grid">
-        <div className="db-card">
-          <div className="db-card-header">
-            <div className="db-card-title">🕐 Hoạt động gần đây</div>
-          </div>
-          <div className="db-card-body">
-            {INITIAL_ACTIVITY.map((a, i) => (
-              <div className="db-activity-item" key={i}>
-                <div className="db-activity-dot" style={{ background: a.color }} />
-                <div>
-                  <div className="db-activity-text">{a.text}</div>
-                  <div className="db-activity-time">{a.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="db-card" style={{ margin: "0 0 20px" }}>
+        <div className="db-card-header">
+          <div className="db-card-title">🕐 Hoạt động gần đây</div>
+          <div style={{ fontSize: 12, color: "#a0aec0" }}>10 hoạt động gần nhất</div>
         </div>
-
-        <div className="db-card">
-          <div className="db-card-header">
-            <div className="db-card-title">ℹ️ Thông tin hệ thống</div>
-          </div>
-          <div className="db-card-body">
-            {[
-              { label: "✅ Trạng thái AI",  value: "Hoạt động",       color: "#16a34a" },
-              { label: "🌐 Model AI",        value: "Gemini 2.5 Flash", color: "#2777fc" },
-              { label: "🗄 Vector Store",    value: "Memory (In-memory)", color: "#7c3aed" },
-              { label: "💻 Framework",       value: "React + Vite",     color: "#ea580c" },
-            ].map((row, i) => (
-              <div className="db-sys-info-row" key={i}>
-                <span className="db-sys-info-label">{row.label}</span>
-                <span className="db-sys-info-value" style={{ color: row.color }}>{row.value}</span>
+        <div className="db-card-body">
+          {activity.length === 0 && (
+            <p style={{ color: "#a0aec0", fontSize: 13 }}>Chưa có hoạt động nào.</p>
+          )}
+          {activity.map((a) => (
+            <div className="db-activity-item" key={a.id}>
+              <div className="db-activity-dot" style={{ background: getActivityColor(a.description) }} />
+              <div>
+                <div className="db-activity-text">{a.description}</div>
+                <div className="db-activity-time">{formatTime(a.created_at)}</div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -266,8 +238,9 @@ function ChapterModal({ data, onClose, onSave }) {
 }
 
 // ─── Upload PDF Modal ─────────────────────────────────────────────────────────
-function UploadModal({ chapterInfo, onClose, onSave }) {
+function UploadModal({ chapterInfo, onClose, onSave, uploading }) {
   const [file, setFile] = useState(null);
+  const [displayName, setDisplayName] = useState("");
   const [drag, setDrag] = useState(false);
   const inputRef = useRef();
 
@@ -275,7 +248,11 @@ function UploadModal({ chapterInfo, onClose, onSave }) {
     e.preventDefault();
     setDrag(false);
     const f = e.dataTransfer.files[0];
-    if (f && f.name.toLowerCase().endsWith(".pdf")) setFile(f);
+    const ext = f?.name.toLowerCase();
+    if (f && (ext.endsWith(".pdf") || ext.endsWith(".docx") || ext.endsWith(".txt"))) {
+      setFile(f);
+      setDisplayName(f.name.replace(/\.[^.]+$/, ""));
+    }
   };
 
   return (
@@ -283,7 +260,7 @@ function UploadModal({ chapterInfo, onClose, onSave }) {
       <div className="db-modal">
         <div className="db-modal-title">
           <span className="db-modal-title-icon">📤</span>
-          Tải lên tài liệu PDF
+          Tải lên tài liệu
         </div>
         <div className="db-modal-body">
           <div className="db-form-group">
@@ -291,7 +268,7 @@ function UploadModal({ chapterInfo, onClose, onSave }) {
             <div className="db-form-info">{chapterInfo}</div>
           </div>
           <div className="db-form-group">
-            <label className="db-form-label">Chọn file PDF <span style={{ color: "#e53935" }}>*</span></label>
+            <label className="db-form-label">Chọn file <span style={{ color: "#e53935" }}>*</span></label>
             <div
               className={`db-upload-area ${drag ? "drag-over" : ""}`}
               onClick={() => inputRef.current.click()}
@@ -302,17 +279,73 @@ function UploadModal({ chapterInfo, onClose, onSave }) {
               <div className="db-upload-icon">☁️</div>
               <div className="db-upload-hint">Nhấn để chọn file hoặc kéo thả vào đây</div>
               <div className="db-upload-filename">
-                {file ? `✓ ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)` : "Hỗ trợ: PDF (tối đa 20MB)"}
+                {file ? `✓ ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)` : "Hỗ trợ: PDF, DOCX, TXT (tối đa 20MB)"}
               </div>
             </div>
-            <input ref={inputRef} type="file" accept=".pdf" style={{ display: "none" }}
-              onChange={(e) => { if (e.target.files[0]) setFile(e.target.files[0]); }} />
+            <input ref={inputRef} type="file" accept=".pdf,.docx,.txt" style={{ display: "none" }}
+              onChange={(e) => {
+                const f = e.target.files[0];
+                if (f) {
+                  setFile(f);
+                  setDisplayName(f.name.replace(/\.[^.]+$/, ""));
+                }
+              }} />
+          </div>
+          <div className="db-form-group">
+            <label className="db-form-label">Tên File <span style={{ color: "#e53935" }}>*</span></label>
+            <input
+              className="db-form-input"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Nhập tên file cho tài liệu..."
+            />
           </div>
         </div>
         <div className="db-modal-footer">
           <button className="db-btn db-btn-secondary" onClick={onClose}>Hủy</button>
-          <button className="db-btn db-btn-primary" onClick={() => file && onSave(file)}>
-            📤 Tải lên
+          <button
+            className="db-btn db-btn-primary"
+            onClick={() => file && displayName.trim() && !uploading && onSave(file, displayName.trim())}
+            disabled={!file || !displayName.trim() || uploading}
+          >
+            {uploading ? "⏳ Đang tải lên..." : "📤 Tải lên"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Rename File Modal ────────────────────────────────────────────────────────
+function RenameFileModal({ file, onClose, onSave }) {
+  const [name, setName] = useState(file.file_name);
+
+  return (
+    <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="db-modal">
+        <div className="db-modal-title">
+          <span className="db-modal-title-icon">✏️</span>
+          Đổi tên tài liệu
+        </div>
+        <div className="db-modal-body">
+          <div className="db-form-group">
+            <label className="db-form-label">Tên hiển thị <span style={{ color: "#e53935" }}>*</span></label>
+            <input
+              className="db-form-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </div>
+        </div>
+        <div className="db-modal-footer">
+          <button className="db-btn db-btn-secondary" onClick={onClose}>Hủy</button>
+          <button
+            className="db-btn db-btn-primary"
+            onClick={() => name.trim() && onSave(name.trim())}
+            disabled={!name.trim()}
+          >
+            💾 Lưu
           </button>
         </div>
       </div>
@@ -321,19 +354,19 @@ function UploadModal({ chapterInfo, onClose, onSave }) {
 }
 
 // ─── Subjects Page ────────────────────────────────────────────────────────────
-function SubjectsPage({ subjects, setSubjects, toast }) {
-  const [filter, setFilter] = useState("");
-  const [openIds, setOpenIds] = useState(new Set());
-  const [subjectModal, setSubjectModal] = useState(null); // null | { editing: obj|null }
-  const [chapterModal, setChapterModal] = useState(null); // null | { subjectId, editing: obj|null }
-  const [uploadModal, setUploadModal] = useState(null);   // null | { chapterId, subjectId }
+function SubjectsPage({ subjects, loadData, toast }) {
+  const [filter] = useState("");
+  const [openIds, setOpenIds] = useState(() => new Set(subjects.map((s) => s.id)));
+  const [subjectModal, setSubjectModal] = useState(null);
+  const [chapterModal, setChapterModal] = useState(null);
+  const [uploadModal, setUploadModal] = useState(null);
+  const [renameModal, setRenameModal] = useState(null);
   const [confirm, setConfirm] = useState(null);
-  const nextSubjectId = useRef(subjects.length ? Math.max(...subjects.map(s => s.id)) + 1 : 1);
-  const nextChapterId = useRef(
-    subjects.flatMap(s => s.chapters).length
-      ? Math.max(...subjects.flatMap(s => s.chapters).map(c => c.id)) + 1
-      : 1
-  );
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    setOpenIds(new Set(subjects.map((s) => s.id)));
+  }, [subjects]);
 
   const toggleOpen = (id) => {
     setOpenIds((prev) => {
@@ -348,91 +381,118 @@ function SubjectsPage({ subjects, setSubjects, toast }) {
   );
 
   // Subject CRUD
-  const saveSubject = ({ name }) => {
-    if (subjectModal?.editing) {
-      setSubjects((prev) => prev.map((s) => s.id === subjectModal.editing.id ? { ...s, name } : s));
-      toast("Cập nhật môn học thành công!");
-    } else {
-      const id = nextSubjectId.current++;
-      setSubjects((prev) => [...prev, { id, name, chapters: [] }]);
-      setOpenIds((prev) => new Set([...prev, id]));
-      toast("Thêm môn học thành công!");
+  const saveSubject = async ({ name }) => {
+    try {
+      if (subjectModal?.editing) {
+        await axios.put(`${API_BASE}/subjects/${subjectModal.editing.id}`, { name });
+        toast("Cập nhật môn học thành công!");
+      } else {
+        const { data } = await axios.post(`${API_BASE}/subjects`, { name });
+        setOpenIds((prev) => new Set([...prev, data.id]));
+        toast("Thêm môn học thành công!");
+      }
+      await loadData();
+      setSubjectModal(null);
+    } catch (err) {
+      toast(err.response?.data?.error || "Lỗi khi lưu môn học!", "error");
     }
-    setSubjectModal(null);
   };
 
   const deleteSubject = (s) => {
     setConfirm({
-      msg: `Xóa môn học "${s.name}"? Tất cả chương và tài liệu sẽ bị mất!`,
-      fn: () => {
-        setSubjects((prev) => prev.filter((x) => x.id !== s.id));
-        toast("Đã xóa môn học!", "info");
+      msg: `Xóa môn học "${s.name}"?`,
+      fn: async () => {
+        try {
+          await axios.delete(`${API_BASE}/subjects/${s.id}`);
+          await loadData();
+          toast("Đã xóa môn học!", "info");
+        } catch (err) {
+          toast(err.response?.data?.error || "Không thể xóa môn học!", "error");
+        }
       },
     });
   };
 
   // Chapter CRUD
-  const saveChapter = ({ name }) => {
+  const saveChapter = async ({ name }) => {
     const { subjectId, editing } = chapterModal;
-    if (editing) {
-      setSubjects((prev) => prev.map((s) => s.id === subjectId
-        ? { ...s, chapters: s.chapters.map((c) => c.id === editing.id ? { ...c, name } : c) }
-        : s
-      ));
-      toast("Cập nhật chương thành công!");
-    } else {
-      const id = nextChapterId.current++;
-      setSubjects((prev) => prev.map((s) => s.id === subjectId
-        ? { ...s, chapters: [...s.chapters, { id, name, files: [] }] }
-        : s
-      ));
-      setOpenIds((prev) => new Set([...prev, subjectId]));
-      toast("Thêm chương thành công!");
+    try {
+      if (editing) {
+        await axios.put(`${API_BASE}/chapters/${editing.id}`, { name });
+        toast("Cập nhật chương thành công!");
+      } else {
+        await axios.post(`${API_BASE}/chapters`, { name, subject_id: subjectId });
+        setOpenIds((prev) => new Set([...prev, subjectId]));
+        toast("Thêm chương thành công!");
+      }
+      await loadData();
+      setChapterModal(null);
+    } catch (err) {
+      toast(err.response?.data?.error || "Lỗi khi lưu chương!", "error");
     }
-    setChapterModal(null);
   };
 
-  const deleteChapter = (c, subjectId) => {
+  const deleteChapter = (c) => {
     setConfirm({
-      msg: `Xóa chương "${c.name}"? Tất cả tài liệu sẽ bị mất!`,
-      fn: () => {
-        setSubjects((prev) => prev.map((s) => s.id === subjectId
-          ? { ...s, chapters: s.chapters.filter((x) => x.id !== c.id) }
-          : s
-        ));
-        toast("Đã xóa chương!", "info");
+      msg: `Xóa chương "${c.name}"?`,
+      fn: async () => {
+        try {
+          await axios.delete(`${API_BASE}/chapters/${c.id}`);
+          await loadData();
+          toast("Đã xóa chương!", "info");
+        } catch (err) {
+          toast(err.response?.data?.error || "Không thể xóa chương!", "error");
+        }
       },
     });
   };
 
   // File CRUD
-  const saveFile = (file) => {
+  const saveFile = async (file, displayName) => {
     const { chapterId } = uploadModal;
-    setSubjects((prev) => prev.map((s) => ({
-      ...s,
-      chapters: s.chapters.map((c) => c.id === chapterId
-        ? { ...c, files: [...c.files, { name: file.name, size: (file.size / 1024 / 1024).toFixed(1) + " MB" }] }
-        : c
-      ),
-    })));
-    toast(`Tải lên "${file.name}" thành công!`);
-    setUploadModal(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("chapter_id", chapterId);
+      formData.append("display_name", displayName);
+      await axios.post(`${API_BASE}/files/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      await loadData();
+      toast(`Tải lên "${displayName}" thành công!`);
+      setUploadModal(null);
+    } catch (err) {
+      toast(err.response?.data?.error || "Lỗi tải lên!", "error");
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const deleteFile = (chapterId, idx, fileName) => {
+  const deleteFile = (file) => {
     setConfirm({
-      msg: `Xóa file "${fileName}"?`,
-      fn: () => {
-        setSubjects((prev) => prev.map((s) => ({
-          ...s,
-          chapters: s.chapters.map((c) => c.id === chapterId
-            ? { ...c, files: c.files.filter((_, i) => i !== idx) }
-            : c
-          ),
-        })));
-        toast("Đã xóa file!", "info");
+      msg: `Xóa file "${file.file_name}"?`,
+      fn: async () => {
+        try {
+          await axios.delete(`${API_BASE}/files/${file.id}`);
+          await loadData();
+          toast("Đã xóa file!", "info");
+        } catch (err) {
+          toast(err.response?.data?.error || "Không thể xóa file!", "error");
+        }
       },
     });
+  };
+
+  const renameFile = async (newName) => {
+    try {
+      await axios.put(`${API_BASE}/files/${renameModal.id}`, { file_name: newName });
+      await loadData();
+      toast("Đổi tên thành công!");
+      setRenameModal(null);
+    } catch (err) {
+      toast(err.response?.data?.error || "Không thể đổi tên!", "error");
+    }
   };
 
   const getChapterInfo = () => {
@@ -452,10 +512,6 @@ function SubjectsPage({ subjects, setSubjects, toast }) {
           <p>Tổ chức môn học theo chương và tải lên tài liệu PDF làm nguồn tri thức cho AI</p>
         </div>
         <div className="db-section-header-actions">
-          <div className="db-search-bar">
-            <span className="db-search-icon">🔍</span>
-            <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Tìm môn học..." />
-          </div>
           <button className="db-btn db-btn-primary" onClick={() => setSubjectModal({ editing: null })}>
             ＋ Thêm môn học
           </button>
@@ -506,13 +562,15 @@ function SubjectsPage({ subjects, setSubjects, toast }) {
                         </div>
                         {c.files.length > 0 && (
                           <div className="db-file-list">
-                            {c.files.map((f, idx) => (
-                              <div className="db-file-item" key={idx}>
+                            {c.files.map((f) => (
+                              <div className="db-file-item" key={f.id}>
                                 <span className="db-file-icon">📕</span>
-                                <span className="db-file-name">{f.name}</span>
-                                <span className="db-file-size">{f.size}</span>
+                                <a href={f.file_url} target="_blank" rel="noreferrer" className="db-file-name">{f.file_name}</a>
+                                <span className="db-file-size" data-type={f.file_type?.toUpperCase()}>{f.file_type?.toUpperCase()}</span>
+                                <button className="db-file-edit-btn"
+                                  onClick={() => setRenameModal(f)}>✏️</button>
                                 <button className="db-file-delete-btn"
-                                  onClick={() => deleteFile(c.id, idx, f.name)}>✕</button>
+                                  onClick={() => deleteFile(f)}>✕</button>
                               </div>
                             ))}
                           </div>
@@ -526,7 +584,7 @@ function SubjectsPage({ subjects, setSubjects, toast }) {
                         <button className="db-btn db-btn-warning db-btn-sm"
                           onClick={() => setChapterModal({ subjectId: s.id, editing: c })}>✏️</button>
                         <button className="db-btn db-btn-danger db-btn-sm"
-                          onClick={() => deleteChapter(c, s.id)}>🗑</button>
+                          onClick={() => deleteChapter(c)}>🗑</button>
                       </div>
                     </div>
                   ))}
@@ -561,6 +619,14 @@ function SubjectsPage({ subjects, setSubjects, toast }) {
           chapterInfo={getChapterInfo()}
           onClose={() => setUploadModal(null)}
           onSave={saveFile}
+          uploading={uploading}
+        />
+      )}
+      {renameModal && (
+        <RenameFileModal
+          file={renameModal}
+          onClose={() => setRenameModal(null)}
+          onSave={renameFile}
         />
       )}
       {confirm && (
@@ -955,11 +1021,144 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
   );
 }
 
+// ─── Documents Page ─────────────────────────────────────────────────────────
+function DocumentsPage({ subjects }) {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [openSubjects, setOpenSubjects] = useState(() => new Set(subjects.map((s) => s.id)));
+  const [openChapters, setOpenChapters] = useState(() => new Set(subjects.flatMap((s) => s.chapters.map((c) => c.id))));
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpenSubjects(new Set(subjects.map((s) => s.id)));
+    setOpenChapters(new Set(subjects.flatMap((s) => s.chapters.map((c) => c.id))));
+  }, [subjects]);
+
+  const toggleSubject = (id) =>
+    setOpenSubjects((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const toggleChapter = (id) =>
+    setOpenChapters((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const totalFiles = subjects.reduce((a, s) => a + s.chapters.reduce((b, c) => b + c.files.length, 0), 0);
+
+  return (
+    <div className="db-docs-layout">
+      {/* ── Sidebar tree ── */}
+      <div className="db-docs-sidebar">
+        <div className="db-docs-sidebar-heading">
+          <span>📖 Tài liệu học tập</span>
+          <span className="db-docs-count">{totalFiles} tài liệu</span>
+        </div>
+
+        {subjects.length === 0 && (
+          <p className="db-docs-hint">Chưa có tài liệu nào.</p>
+        )}
+
+        {subjects.map((subject) => (
+          <div key={subject.id} className="db-docs-subject">
+            <div
+              className={`db-docs-subject-header ${
+                openSubjects.has(subject.id) ? "open" : ""
+              }`}
+              onClick={() => toggleSubject(subject.id)}
+            >
+              <span className="db-docs-arrow">{openSubjects.has(subject.id) ? "▾" : "▸"}</span>
+              <span>📚</span>
+              <span className="db-docs-label">{subject.name}</span>
+              <span className="db-docs-badge">{subject.chapters.reduce((a, c) => a + c.files.length, 0)}</span>
+            </div>
+
+            {openSubjects.has(subject.id) && subject.chapters.map((chapter) => (
+              <div key={chapter.id}>
+                <div
+                  className={`db-docs-chapter-header ${
+                    openChapters.has(chapter.id) ? "open" : ""
+                  }`}
+                  onClick={() => toggleChapter(chapter.id)}
+                >
+                  <span className="db-docs-arrow">{openChapters.has(chapter.id) ? "▾" : "▸"}</span>
+                  <span>📂</span>
+                  <span className="db-docs-label">{chapter.name}</span>
+                  <span className="db-docs-badge">{chapter.files.length}</span>
+                </div>
+
+                {openChapters.has(chapter.id) && chapter.files.map((file) => (
+                  <div
+                    key={file.id}
+                    className={`db-docs-file-item ${selectedFile?.id === file.id ? "active" : ""}`}
+                    onClick={() => setSelectedFile(file)}
+                  >
+                    <span>📄</span>
+                    <span className="db-docs-file-name">{file.file_name}</span>
+                    <span
+                      className="db-docs-file-type"
+                      data-type={(file.file_type?.split("/").pop() || "file").replace("vnd.openxmlformats-officedocument.wordprocessingml.document", "docx").toUpperCase()}
+                    >
+                      {(file.file_type?.split("/").pop() || "file").replace(
+                        "vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"
+                      ).toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* ── Viewer ── */}
+      <div className="db-docs-content">
+        {selectedFile ? (
+          <>
+            <div className="db-docs-content-header">
+              <span className="db-docs-content-title">📄 {selectedFile.file_name}</span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <a
+                  href={selectedFile.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="db-btn db-btn-secondary"
+                  style={{ textDecoration: "none", fontSize: 13, padding: "6px 14px" }}
+                >
+                  ↗ Mở tab mới
+                </a>
+                <button
+                  className="db-btn db-btn-secondary"
+                  style={{ fontSize: 13, padding: "6px 14px" }}
+                  onClick={() => setSelectedFile(null)}
+                >
+                  ✕ Đóng
+                </button>
+              </div>
+            </div>
+            <iframe
+              src={
+                selectedFile.file_type === "docx"
+                  ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedFile.file_url)}`
+                  : selectedFile.file_url
+              }
+              title={selectedFile.file_name}
+              className="db-docs-iframe"
+            />
+          </>
+        ) : (
+          <div className="db-docs-empty">
+            <div className="db-docs-empty-icon">📖</div>
+            <p className="db-docs-empty-title">Chọn một tài liệu để xem</p>
+            <p className="db-docs-empty-hint">Mở rộng môn học và chương từ danh sách bên trái, sau đó nhấn vào tài liệu để xem nội dung.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Topbar ───────────────────────────────────────────────────────────────────
 const PAGE_TITLES = {
   overview: "Tổng quan",
   subjects: "Quản lý môn học",
   accounts: "Quản lý tài khoản",
+  documents: "Tài liệu học tập",
 };
 
 function Topbar({ activePage, currentUser }) {
@@ -991,32 +1190,62 @@ function Topbar({ activePage, currentUser }) {
 }
 
 // ─── DashboardMain ────────────────────────────────────────────────────────────
-const DashboardMain = ({ activePage }) => {
+// eslint-disable-next-line no-unused-vars
+const DashboardMain = ({ activePage, onLogout }) => {
   const currentUser = (() => {
     try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
   })();
-  const [subjects, setSubjects] = useState(INITIAL_SUBJECTS);
+  const [subjects, setSubjects] = useState([]);
   const [users, setUsers] = useState([]);
   const { toasts, show: showToast, remove: removeToast } = useToast();
 
-  // ── GET /users on mount ───────────────────────────────────────────────────
+  const showToastRef = useRef(showToast);
+  useEffect(() => { showToastRef.current = showToast; }, [showToast]);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [{ data: subjectsData }, { data: chaptersData }, { data: filesData }] = await Promise.all([
+        axios.get(`${API_BASE}/subjects`),
+        axios.get(`${API_BASE}/chapters`),
+        axios.get(`${API_BASE}/files`),
+      ]);
+      const nested = subjectsData.map((s) => ({
+        ...s,
+        chapters: chaptersData
+          .filter((c) => c.subject_id === s.id)
+          .map((c) => ({
+            ...c,
+            files: filesData.filter((f) => f.chapter_id === c.id),
+          })),
+      }));
+      setSubjects(nested);
+    } catch {
+      showToastRef.current("Không thể tải dữ liệu từ server!", "error");
+    }
+  }, []);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadData(); }, []);
+
   useEffect(() => {
     getUsers()
       .then((res) => {
         const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
         setUsers(list);
       })
-      .catch(() => showToast("Không thể tải danh sách tài khoản!", "error"));
-  }, [showToast]);
+      .catch(() => showToastRef.current("Không thể tải danh sách tài khoản!", "error"));
+  }, []);
 
   const renderPage = () => {
     switch (activePage) {
       case "overview":
         return <OverviewPage subjects={subjects} users={users} />;
       case "subjects":
-        return <SubjectsPage subjects={subjects} setSubjects={setSubjects} toast={showToast} />;
+        return <SubjectsPage subjects={subjects} loadData={loadData} toast={showToast} />;
       case "accounts":
         return <AccountsPage users={users} setUsers={setUsers} currentUser={currentUser} toast={showToast} />;
+      case "documents":
+        return <DocumentsPage subjects={subjects} />;
       default:
         return <OverviewPage subjects={subjects} users={users} />;
     }

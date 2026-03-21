@@ -119,6 +119,42 @@
   border-color: #2777fc;
 }
 
+/* NEW QUIZ BUTTON */
+.new-quiz-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e65100;
+  background: #fff8f0;
+  border: 1.5px dashed #ffcc80;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.new-quiz-btn:hover {
+  background: #ffe0b2;
+  border-color: #fb8c00;
+}
+
+.new-quiz-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sidebar.collapsed .new-quiz-btn {
+  justify-content: center;
+  padding: 11px;
+  gap: 0;
+}
+
 .new-chat-btn img {
   width: 18px;
   flex-shrink: 0;
@@ -234,6 +270,25 @@
 .sidebar .recent-entry.active img {
   opacity: 0.8;
   filter: invert(35%) sepia(90%) saturate(1200%) hue-rotate(210deg);
+}
+
+/* Entry icon (emoji replaces img) */
+.sidebar .recent-entry .entry-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sidebar .recent-entry.quiz-entry:hover {
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+.sidebar .recent-entry.quiz-entry.active {
+  background: #ffe0b2;
+  color: #e65100;
+  border-left: 3px solid #fb8c00;
+  font-weight: 600;
 }
 
 .delete-conv-btn {
