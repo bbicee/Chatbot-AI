@@ -229,7 +229,7 @@ function SubjectModal({ data, onClose, onSave }) {
         </div>
         <div className="db-modal-footer">
           <button className="db-btn db-btn-secondary" onClick={onClose}>Hủy</button>
-          <button className="db-btn db-btn-primary" onClick={handleSave}>💾 Lưu</button>
+          <button className="db-btn db-btn-primary" onClick={handleSave}>Lưu</button>
         </div>
       </div>
     </div>
@@ -257,7 +257,7 @@ function ChapterModal({ data, onClose, onSave }) {
         <div className="db-modal-footer">
           <button className="db-btn db-btn-secondary" onClick={onClose}>Hủy</button>
           <button className="db-btn db-btn-primary" onClick={() => { if (name.trim()) onSave({ name: name.trim() }); }}>
-            💾 Lưu
+            Lưu
           </button>
         </div>
       </div>
@@ -632,7 +632,7 @@ function UserModal({ data, onClose, onSave, canEditRole = true }) {
                 value={role}
                 onChange={(e) => setRole(Number(e.target.value))}
               >
-                <option value={0}>Người dùng</option>
+                <option value={0}>Giáo viên</option>
                 <option value={1}>Quản trị viên</option>
               </select>
             </div>
@@ -644,7 +644,7 @@ function UserModal({ data, onClose, onSave, canEditRole = true }) {
             className="db-btn db-btn-primary"
             onClick={() => onSave({ username: username.trim(), name: name.trim(), password, role, isEdit })}
           >
-            💾 Lưu
+            Lưu
           </button>
         </div>
       </div>
@@ -910,13 +910,13 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
                             <button className="db-btn db-btn-secondary db-btn-sm"
                               onClick={() => setUserModal({ editing: u })}>✏️ Sửa</button>
                           )}
-                          {isOwnRow && (
+                          {(isAdmin || isOwnRow) && (
                             <button className="db-btn db-btn-warning db-btn-sm"
                               onClick={() => setChangePwModal(u)}>🔑 Đổi MK</button>
                           )}
                           {canDelete && (
                             <button className="db-btn db-btn-danger db-btn-sm"
-                              onClick={() => handleDeleteUser(u)}>🗑</button>
+                              onClick={() => handleDeleteUser(u)}>🗑 Xóa</button>
                           )}
                         </div>
                       </td>

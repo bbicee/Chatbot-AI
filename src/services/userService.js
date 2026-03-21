@@ -28,7 +28,7 @@ export const getUsers = async () => {
 
 // ── POST /users ───────────────────────────────────────────────────────────────
 export const createUser = async (data) => {
-  const res = await fetch(`${API_BASE}/users`, {
+  const res = await fetch(`${API_BASE}/users/register`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(data),

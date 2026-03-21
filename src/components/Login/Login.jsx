@@ -183,23 +183,6 @@ export default function Login() {
               )}
             </div>
 
-            {/* Remember & Forgot Password */}
-            <div className="form-row">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleInputChange}
-                  disabled={isLoading}
-                />
-                <span>Ghi nhớ đăng nhập</span>
-              </label>
-              <a href="#" className="forgot-link">
-                Quên mật khẩu?
-              </a>
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -210,13 +193,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Support Text */}
-          <div className="login-footer">
-            <p>
-              Cần hỗ trợ?{" "}
-              <a href="mailto:support@educhat.edu.vn">Liên hệ quản trị viên</a>
-            </p>
-          </div>
         </div>
       </div>
     </div>
