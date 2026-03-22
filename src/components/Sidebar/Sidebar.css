@@ -20,6 +20,10 @@
   min-width: 68px;
 }
 
+.recent-conversations {
+  overflow-y: auto;
+}
+
 /* ===== SIDEBAR LOGO AREA ===== */
 .sidebar-logo {
   display: flex;

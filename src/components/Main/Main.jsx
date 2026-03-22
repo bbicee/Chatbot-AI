@@ -8,16 +8,23 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-const SUGGESTIONS = [
-  { text: "Hướng dẫn cách sử dụng Excel để tổng hợp và phân tích dữ liệu",            icon: assets.compass_icon },
-  { text: "Giải thích các khái niệm cơ bản về thuật toán và độ phức tạp",            icon: assets.bulb_icon },
-  { text: "Thảo luận về cơ sở dữ liệu quan hệ và cách viết câu lệnh SQL",           icon: assets.message_icon },
-  { text: "Viết mã mẫu Python hoặc C++ để giải quyết bài toán lập trình",           icon: assets.code_icon },
+const SUGGESTIONS_CHAT = [
+  { text: "Hướng dẫn cách sử dụng Excel để tổng hợp và phân tích dữ liệu",  icon: assets.compass_icon },
+  { text: "Giải thích các khái niệm cơ bản về thuật toán và độ phức tạp",   icon: assets.bulb_icon },
+  { text: "Thảo luận về cơ sở dữ liệu quan hệ và cách viết câu lệnh SQL",  icon: assets.message_icon },
+  { text: "Viết mã mẫu Python để giải quyết bài toán sắp xếp",              icon: assets.code_icon },
+];
+
+const SUGGESTIONS_QUIZ = [
+  { text: "Tạo 20 câu trắc nghiệm về cơ sở dữ liệu SQL",                   icon: assets.compass_icon },
+  { text: "Tạo 10 câu hỏi về thuật toán và cấu trúc dữ liệu",              icon: assets.bulb_icon },
+  { text: "Tạo 15 câu trắc nghiệm về lập trình Python cơ bản",             icon: assets.message_icon },
+  { text: "Tạo 20 câu hỏi về mạng máy tính và giao thức TCP/IP",           icon: assets.code_icon },
 ];
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
-function WelcomeScreen({ onSuggest }) {
+function WelcomeScreen({ onSuggest, suggestions }) {
   return (
     <div className="welcome">
       <div className="welcome-badge">✦ AI Trợ lý học tập</div>
@@ -26,7 +33,7 @@ function WelcomeScreen({ onSuggest }) {
         Trợ lý học tập môn Tin học — hỏi bất cứ điều gì về bài giảng, bài tập hay lý thuyết.
       </p>
       <div className="suggestions">
-        {SUGGESTIONS.map((s, i) => (
+        {suggestions.map((s, i) => (
           <div key={i} className="suggestion-card" onClick={() => onSuggest(s.text)}>
             <p>{s.text}</p>
             <img src={s.icon} alt="" />
@@ -319,7 +326,10 @@ const Main = () => {
           )}
           <div className="messages" ref={messagesRef}>
             {!hasMessages ? (
-              <WelcomeScreen onSuggest={(text) => isQuizMode ? onGenerateQuiz(text) : onSent(text)} />
+              <WelcomeScreen
+                onSuggest={(text) => isQuizMode ? onGenerateQuiz(text) : onSent(text)}
+                suggestions={isQuizMode ? SUGGESTIONS_QUIZ : SUGGESTIONS_CHAT}
+              />
             ) : (
               <div className="conversation">
                 {messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)}

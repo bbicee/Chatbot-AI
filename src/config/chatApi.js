@@ -1,18 +1,41 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export async function createConversation(userId, type = 'chat') {
+// ─── Anonymous user identity ──────────────────────────────────────────────────
+
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback for older browsers
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
+export function getOrCreateAnonymousUserId() {
+  const STORAGE_KEY = 'anonymousUserId';
+  let id = localStorage.getItem(STORAGE_KEY);
+  if (!id || id.trim() === '') {
+    id = generateUUID();
+    localStorage.setItem(STORAGE_KEY, id);
+  }
+  return id;
+}
+
+export async function createConversation(anonymousUserId, type = 'chat') {
   const res = await fetch(`${API_BASE}/conversations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId, type }),
+    body: JSON.stringify({ anonymous_user_id: anonymousUserId, type }),
   });
   if (!res.ok) throw new Error(`createConversation: ${res.status}`);
   return res.json();
 }
 
-export async function listConversations(userId) {
-  const url = userId
-    ? `${API_BASE}/conversations?user_id=${userId}`
+export async function listConversations(anonymousUserId) {
+  const url = anonymousUserId
+    ? `${API_BASE}/conversations?anonymous_user_id=${encodeURIComponent(anonymousUserId)}`
     : `${API_BASE}/conversations`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`listConversations: ${res.status}`);

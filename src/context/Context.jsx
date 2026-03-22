@@ -7,14 +7,9 @@ import {
   updateConversationTitle,
   streamChat,
   streamQuiz,
+  getOrCreateAnonymousUserId,
 } from "../config/chatApi";
 import { Context } from "./ContextDef";
-
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-
-function getStoredUser() {
-  try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
-}
 
 // ─── Context Provider ──────────────────────────────────────────────────────────
 
@@ -40,8 +35,8 @@ const ContextProvider = ({ children }) => {
 
   const loadConversations = useCallback(async () => {
     try {
-      const user = getStoredUser();
-      const data = await listConversations(user?.id);
+      const anonId = getOrCreateAnonymousUserId();
+      const data = await listConversations(anonId);
       setConversations(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("[conversations] load failed:", err.message);
@@ -124,8 +119,8 @@ const ContextProvider = ({ children }) => {
 
     if (isNewConv) {
       try {
-        const user  = getStoredUser();
-        const conv  = await createConversation(user?.id, 'quiz');
+        const anonId = getOrCreateAnonymousUserId();
+        const conv  = await createConversation(anonId, 'quiz');
         convId      = conv.id;
         const title = `[Quiz] ${currentPrompt.slice(0, 50)}`;
         setActiveConv(convId);
@@ -186,8 +181,8 @@ const ContextProvider = ({ children }) => {
     // Create a new conversation on the backend when starting fresh
     if (isNewConv) {
       try {
-        const user  = getStoredUser();
-        const conv  = await createConversation(user?.id);
+        const anonId = getOrCreateAnonymousUserId();
+        const conv  = await createConversation(anonId);
         convId      = conv.id;
         const title = currentPrompt.slice(0, 60);
         setActiveConv(convId);

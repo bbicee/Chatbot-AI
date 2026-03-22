@@ -64,21 +64,23 @@ const Sidebar = () => {
           <>
             <div className="divider" />
             <p className="recent-title">Gần đây</p>
-            {conversations.slice(0, 8).map((conv) => (
-              <div
-                key={conv.id}
-                className={`recent-entry ${conv.id === activeConvId ? "active" : ""} ${conv.type === "quiz" ? "quiz-entry" : ""}`}
-                onClick={() => handleLoadPrompt(conv)}
-              >
-                <span className="entry-icon">{conv.type === "quiz" ? "🎯" : "💬"}</span>
-                <span className="nav-label">{(conv.title || 'Cuộc trò chuyện').replace(/^\[Quiz\]\s*/,'').slice(0, 24)}{(conv.title || '').replace(/^\[Quiz\]\s*/,'').length > 24 ? "…" : ""}</span>
-                <button
-                  className="delete-conv-btn"
-                  onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
-                  title="Xóa"
-                >✕</button>
-              </div>
-            ))}
+            <div className="recent-conversations">
+              {conversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  className={`recent-entry ${conv.id === activeConvId ? "active" : ""} ${conv.type === "quiz" ? "quiz-entry" : ""}`}
+                  onClick={() => handleLoadPrompt(conv)}
+                >
+                  <span className="entry-icon">{conv.type === "quiz" ? "🎯" : "💬"}</span>
+                  <span className="nav-label">{(conv.title || 'Cuộc trò chuyện').replace(/^\[Quiz\]\s*/,'').slice(0, 24)}{(conv.title || '').replace(/^\[Quiz\]\s*/,'').length > 24 ? "…" : ""}</span>
+                  <button
+                    className="delete-conv-btn"
+                    onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
+                    title="Xóa"
+                  >✕</button>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </div>
