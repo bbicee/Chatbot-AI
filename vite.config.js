@@ -10,6 +10,6 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: process.env.PORT || 5173,
-    allowedHosts: ['chatbot-ai-mfb2.onrender.com'],
+    allowedHosts: ['chatbot-ai-3dv9.onrender.com'],
   },
 })
