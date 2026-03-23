@@ -1,5 +1,5 @@
-/* Reuses the base .sidebar styles from Sidebar.css */
-/* Dashboard-specific overrides and additions */
+
+
 
 .db-sidebar {
   width: 258px;
@@ -22,7 +22,7 @@
   min-width: 68px;
 }
 
-/* LOGO */
+
 .db-sidebar .sidebar-logo {
   display: flex;
   align-items: center;
@@ -61,7 +61,7 @@
   width: 0;
 }
 
-/* MENU TOGGLE BTN */
+
 .db-sidebar .menu-btn {
   display: flex;
   align-items: center;
@@ -86,7 +86,7 @@
   opacity: 0.5;
 }
 
-/* NAV TOP */
+
 .db-sidebar .sidebar-top {
   display: flex;
   flex-direction: column;
@@ -99,7 +99,7 @@
 .db-sidebar .sidebar-top::-webkit-scrollbar { width: 3px; }
 .db-sidebar .sidebar-top::-webkit-scrollbar-thumb { background: #d0e0ff; border-radius: 10px; }
 
-/* SECTION LABEL */
+
 .db-nav-section-label {
   font-size: 10px;
   font-weight: 600;
@@ -118,7 +118,7 @@
   padding: 0;
 }
 
-/* NAV ITEMS */
+
 .db-sidebar .nav-item {
   display: flex;
   align-items: center;
@@ -154,7 +154,6 @@
   text-align: center;
   font-size: 15px;
   flex-shrink: 0;
-  opacity: 0.5;
 }
 
 .db-sidebar .nav-item:hover .nav-icon,
@@ -178,7 +177,7 @@
   gap: 0;
 }
 
-/* LOGOUT */
+
 .db-logout-btn {
   display: flex;
   align-items: center;
@@ -225,7 +224,7 @@
   width: 0;
 }
 
-/* BOTTOM */
+
 .db-sidebar .sidebar-bottom {
   display: flex;
   flex-direction: column;
@@ -234,7 +233,7 @@
   border-top: 1px solid #e4eaf5;
 }
 
-/* RESPONSIVE */
+
 @media (max-width: 768px) {
   .db-sidebar {
     position: fixed;
@@ -248,6 +247,15 @@
     transform: translateX(0);
   }
 }
+
+
+/* ===== FA Icon Colors ===== */
+.db-sidebar .nav-icon .fa-chart-bar  { color: #2777fc; }
+.db-sidebar .nav-icon .fa-book       { color: #2777fc; }
+.db-sidebar .nav-icon .fa-users      { color: #2777fc; }
+.db-sidebar .nav-icon .fa-folder     { color: #f59e0b; }
+.db-sidebar .nav-icon .fa-robot      { color: #2777fc; }
+.db-logout-btn .nav-icon i           { color: #e53935; }
 
 @media (max-width: 600px) {
   .db-sidebar {

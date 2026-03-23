@@ -1,12 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-// ─── Anonymous user identity ──────────────────────────────────────────────────
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function generateUUID() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
-  // Fallback for older browsers
+  
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
@@ -24,7 +22,7 @@ export function getOrCreateAnonymousUserId() {
 }
 
 export async function createConversation(anonymousUserId, type = 'chat') {
-  const res = await fetch(`${API_BASE}/conversations`, {
+  const res = await fetch(`${apiUrl}/conversations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ anonymous_user_id: anonymousUserId, type }),
@@ -35,21 +33,21 @@ export async function createConversation(anonymousUserId, type = 'chat') {
 
 export async function listConversations(anonymousUserId) {
   const url = anonymousUserId
-    ? `${API_BASE}/conversations?anonymous_user_id=${encodeURIComponent(anonymousUserId)}`
-    : `${API_BASE}/conversations`;
+    ? `${apiUrl}/conversations?anonymous_user_id=${encodeURIComponent(anonymousUserId)}`
+    : `${apiUrl}/conversations`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`listConversations: ${res.status}`);
   return res.json();
 }
 
 export async function getMessages(conversationId) {
-  const res = await fetch(`${API_BASE}/conversations/${conversationId}/messages`);
+  const res = await fetch(`${apiUrl}/conversations/${conversationId}/messages`);
   if (!res.ok) throw new Error(`getMessages: ${res.status}`);
   return res.json();
 }
 
 export async function updateConversationTitle(conversationId, title) {
-  const res = await fetch(`${API_BASE}/conversations/${conversationId}`, {
+  const res = await fetch(`${apiUrl}/conversations/${conversationId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title }),
@@ -59,13 +57,13 @@ export async function updateConversationTitle(conversationId, title) {
 }
 
 export async function deleteConversation(conversationId) {
-  const res = await fetch(`${API_BASE}/conversations/${conversationId}`, {
+  const res = await fetch(`${apiUrl}/conversations/${conversationId}`, {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error(`deleteConversation: ${res.status}`);
 }
 
-// ─── SSE stream reader ────────────────────────────────────────────────────────
+
 
 async function* readSSEStream(body, signal) {
   const reader = body.getReader();
@@ -97,10 +95,10 @@ async function* readSSEStream(body, signal) {
   }
 }
 
-// ─── Chat streaming ───────────────────────────────────────────────────────────
+
 
 export async function* streamChat(conversationId, message, signal) {
-  const res = await fetch(`${API_BASE}/chat`, {
+  const res = await fetch(`${apiUrl}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ conversationId, message }),
@@ -113,10 +111,10 @@ export async function* streamChat(conversationId, message, signal) {
   yield* readSSEStream(res.body, signal);
 }
 
-// ─── Quiz streaming ───────────────────────────────────────────────────────────
+
 
 export async function* streamQuiz(conversationId, message, signal) {
-  const res = await fetch(`${API_BASE}/chat/quiz`, {
+  const res = await fetch(`${apiUrl}/chat/quiz`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ conversationId, message }),

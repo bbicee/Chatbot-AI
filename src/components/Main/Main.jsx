@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const SUGGESTIONS_CHAT = [
   { text: "Hướng dẫn cách sử dụng Excel để tổng hợp và phân tích dữ liệu",  icon: assets.compass_icon },
@@ -22,7 +22,7 @@ const SUGGESTIONS_QUIZ = [
   { text: "Tạo 20 câu hỏi về mạng máy tính và giao thức TCP/IP",           icon: assets.code_icon },
 ];
 
-// ─── Sub-components ────────────────────────────────────────────────────────────
+
 
 function WelcomeScreen({ onSuggest, suggestions }) {
   return (
@@ -140,9 +140,9 @@ function DocumentsView() {
     async function fetchData() {
       try {
         const [{ data: subjectsData }, { data: chaptersData }, { data: filesData }] = await Promise.all([
-          axios.get(`${API_BASE}/subjects`),
-          axios.get(`${API_BASE}/chapters`),
-          axios.get(`${API_BASE}/files`),
+          axios.get(`${apiUrl}/subjects`),
+          axios.get(`${apiUrl}/chapters`),
+          axios.get(`${apiUrl}/files`),
         ]);
         const nested = subjectsData.map((s) => ({
           ...s,
@@ -155,7 +155,6 @@ function DocumentsView() {
         }));
         setSubjects(nested);
         setOpenSubjects(new Set(subjectsData.map((s) => s.id)));
-        setOpenChapters(new Set(chaptersData.map((c) => c.id)));
       } finally {
         setLoading(false);
       }
@@ -175,7 +174,7 @@ function DocumentsView() {
     <div className="docs-view">
       <div className="docs-sidebar">
         <div className="docs-sidebar-heading">
-          <span>📖 Tài liệu học tập</span>
+          <span><i className="fas fa-book-open" /> Tài liệu học tập</span>
           {!loading && <span className="docs-count">{totalFiles} tài liệu</span>}
         </div>
 
@@ -191,7 +190,7 @@ function DocumentsView() {
               onClick={() => toggleSubject(subject.id)}
             >
               <span className="docs-arrow">{openSubjects.has(subject.id) ? "▾" : "▸"}</span>
-              <span>📚</span>
+              <span><i className="fas fa-book" /></span>
               <span className="docs-label">{subject.name}</span>
               <span className="docs-badge">{subject.chapters.reduce((a, c) => a + c.files.length, 0)}</span>
             </div>
@@ -203,7 +202,7 @@ function DocumentsView() {
                   onClick={() => toggleChapter(chapter.id)}
                 >
                   <span className="docs-arrow">{openChapters.has(chapter.id) ? "▾" : "▸"}</span>
-                  <span>📂</span>
+                  <span><i className="fas fa-folder-open" /></span>
                   <span className="docs-label">{chapter.name}</span>
                   <span className="docs-badge">{chapter.files.length}</span>
                 </div>
@@ -214,9 +213,10 @@ function DocumentsView() {
                     className={`doc-item ${selectedFile?.id === file.id ? "doc-item-active" : ""}`}
                     onClick={() => setSelectedFile(file)}
                   >
-                    <span>📄</span>
-                    <span className="docs-file-name">{file.file_name}</span>
-                    <span className="docs-file-type" data-type={file.file_type?.toUpperCase()}>{file.file_type?.toUpperCase()}</span>
+                    <span><i className="fas fa-file" /></span>
+                    <span className="docs-file-name">
+                      {file.file_name?.includes('.') ? file.file_name : `${file.file_name}.${(file.file_type || '').split('/').pop().replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx').toLowerCase()}`}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -229,7 +229,7 @@ function DocumentsView() {
         {selectedFile ? (
           <>
             <div className="docs-header">
-              <span>📄 {selectedFile.file_name}</span>
+              <span><i className="fas fa-file" /> {selectedFile.file_name}</span>
               <div style={{ display: "flex", gap: 8 }}>
                 <a
                   href={selectedFile.file_url}
@@ -237,9 +237,9 @@ function DocumentsView() {
                   rel="noreferrer"
                   className="docs-open-btn"
                 >
-                  ↗ Mở tab mới
+                  Mở tab mới
                 </a>
-                <button className="close-btn" onClick={() => setSelectedFile(null)}>✕ Đóng</button>
+                <button className="close-btn" onClick={() => setSelectedFile(null)}>Đóng</button>
               </div>
             </div>
             <iframe
@@ -255,7 +255,7 @@ function DocumentsView() {
         ) : (
           <div className="docs-empty">
             <div className="docs-empty-inner">
-              <div className="docs-empty-icon">📖</div>
+              <div className="docs-empty-icon"><i className="fas fa-book-open" /></div>
               <p>Chọn một tài liệu để xem</p>
               <span>Mở rộng môn học và chương từ danh sách bên trái, sau đó nhấn vào tài liệu để xem nội dung.</span>
             </div>
@@ -266,7 +266,7 @@ function DocumentsView() {
   );
 }
 
-// ─── Main component ────────────────────────────────────────────────────────────
+
 
 const Main = () => {
   const { onSent, onGenerateQuiz, setInput, input, messages, streamingText, loading, stopChat, isQuizMode } = useContext(Context);
@@ -277,7 +277,7 @@ const Main = () => {
   const isStreaming   = loading || !!streamingText;
   const hasMessages   = messages.length > 0 || isStreaming;
 
-  // Auto-scroll khi có tin nhắn mới
+  
   useEffect(() => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
@@ -299,25 +299,22 @@ const Main = () => {
 
   return (
     <div className="main">
-      {/* Topbar */}
       <div className="topbar">
         <span className="topbar-title">
-          {isDocsMode ? "📚 Tài liệu học tập" : <><span className="brand-dot" />HCA Chatbot</>}
+          {isDocsMode ? <><i className="fas fa-book" /> Tài liệu học tập</> : <><span className="brand-dot" />HCA Chatbot</>}
         </span>
         <div className="topbar-right">
-          <a href="/admin" className="topbar-admin-btn">👨‍🏫 Quản lý</a>
-          <a href="/home.html" className="topbar-back-btn">← Trang chủ</a>
+          <a href="/admin" className="topbar-admin-btn"><i className="fas fa-user-cog" /> Quản lý</a>
+          <a href="/home.html" className="topbar-back-btn">Trang chủ</a>
           <img src={assets.user_icon} alt="user" className="avatar" />
         </div>
       </div>
 
-      {/* Chat view */}
       {!isDocsMode && (
         <div className="chat-view">
-          {/* Quiz mode info banner */}
           {isQuizMode && (
             <div className="quiz-info-banner">
-              <span className="quiz-info-icon">🎯</span>
+              <span className="quiz-info-icon"><i className="fas fa-bullseye" /></span>
               <span>
                 <strong>Chế độ Tạo Trắc nghiệm</strong> — Hệ thống chỉ hỗ trợ tạo câu hỏi trắc nghiệm về các chủ đề học thuật.
                 Mặc định <strong>20 câu hỏi</strong> — thay đổi bằng cách gõ số câu vào yêu cầu (ví dụ: “Tạo 10 câu về SQL”).
@@ -350,7 +347,6 @@ const Main = () => {
         </div>
       )}
 
-      {/* Documents view */}
       {isDocsMode && <DocumentsView />}
     </div>
   );

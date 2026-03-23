@@ -14,7 +14,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ─── Validation ───────────────────────────────────────────────────────────
   const validateForm = () => {
     const newErrors = {};
 
@@ -32,7 +31,7 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ─── Handle Submit ────────────────────────────────────────────────────────
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -44,19 +43,12 @@ export default function Login() {
       const result = await loginUser(formData.username, formData.password);
 
       if (result.success) {
-        // Save token and user info
         localStorage.setItem('token', result.data.token);
         localStorage.setItem('user', JSON.stringify(result.data.user));
         if (formData.rememberMe) {
           localStorage.setItem('rememberMe', 'true');
         }
 
-        // Route based on role: 0 = admin, others = user
-        // if (result.data.user.role === 1) {
-        //   navigate('/admin');
-        // } else {
-        //   navigate('/chatbot');
-        // }
         navigate('/admin');
       } else {
         setErrors({ submit: result.message || 'Đăng nhập thất bại' });
@@ -69,14 +61,12 @@ export default function Login() {
     }
   };
 
-  // ─── Handle Input Change ──────────────────────────────────────────────────
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -85,7 +75,6 @@ export default function Login() {
   return (
     <div className="login-container">
       <div className="login-wrapper">
-        {/* Left Side - Branding */}
         <div className="login-branding">
           <div className="login-logo">
             <div className="logo-icon">📚</div>
@@ -117,7 +106,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right Side - Login Form */}
         <div className="login-form-container">
           <div className="login-form-header">
             <h2>Đăng nhập</h2>
@@ -132,7 +120,6 @@ export default function Login() {
           )}
 
           <form onSubmit={handleSubmit} className="login-form">
-            {/* Username Field */}
             <div className="form-group">
               <label htmlFor="username">Tên đăng nhập</label>
               <div className="input-wrapper">
@@ -153,7 +140,6 @@ export default function Login() {
               )}
             </div>
 
-            {/* Password Field */}
             <div className="form-group">
               <label htmlFor="password">Mật khẩu</label>
               <div className="input-wrapper">
@@ -183,7 +169,6 @@ export default function Login() {
               )}
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               className="login-btn"

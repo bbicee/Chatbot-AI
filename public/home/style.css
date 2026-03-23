@@ -1,42 +1,3 @@
-/*------------------------------------------------------------------
-[Master Stylesheet]
-
-Project:  ChatNex
--------------------------------------------------------------------*/
-/*------------------------------------------------------------------
-[Table of contents]
-
-1. Body
-2. Header  / .header
-3. Banner  /.banner-con
-4. Services  /.our-services-con
-5. Work  /.our-work-con
-6. Projects  /.our-projects-con
-7. Pricing  /.pricing-plans-con
-8. Testimonial  /.testimonial-con
-9. Faq  /.faq-con
-10. Build  /.build-con
-11. Footer  /.footer-con
-*/
-/*------------------------------------------------------------------
-# [Color Codes]
-
-#  --e-global-color-primary: #ffffff;
-#  --e-global-color-secondary: #000000;
-#  --e-global-color-accent: #2777fc;
-#  --e-global-color-text: #5f5f5f;
-#  --e-global-color-text2: #bebebe;
-#  --e-global-color-light-blue: #f2f7ff;
-#  --e-global-color-light-green: #f1fdff;
-
-*/
-/*------------------------------------------------------------------
-# [Typography]
- 
-Body copy: "Urbanist", sans-serif;
-Heading: "Urbanist", sans-serif;
-*/
-
 @import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 
 body {
@@ -109,18 +70,7 @@ h6 {
     color: var(--e-global-color-secondary);
 }
 
-/* h6::before {
-    content: "";
-    top: 0;
-    left: 0;
-    bottom: 0;
-    margin: auto 0;
-    width: 8px;
-    height: 8px;
-    position: absolute;
-    border-radius: 100%;
-    background-color: var(--e-global-color-white);
-} */
+
 
 p {
     font-size: 16px;
@@ -246,12 +196,12 @@ html {
     background-color: var(--e-global-color-light-green) !important;
 }
 
-/* special classes ends here */
-/* Home Page */
 
-/* Header */
 
-/* HEADER SECTION */
+
+
+
+
 .header-con .navbar-light .navbar-nav .nav-link {
     font-size: 16px;
     color: var(--e-global-color-secondary);
@@ -262,7 +212,7 @@ html {
 
 .header-con .navbar-light .navbar-nav .nav-link:hover {
     color: var(--e-global-color-accent);
-    /* text-decoration: underline; */
+    
 }
 
 .header-con .navbar-expand-lg .navbar-nav {
@@ -364,8 +314,8 @@ html {
     padding: 0;
 }
 
-/* HEADER SECTION */
-/* BACK TO TOP BUTTON */
+
+
 #back-to-top-btn {
     display: none;
     position: fixed;
@@ -404,7 +354,7 @@ html {
     background-color: var(--e-global-color-secondary);
     color: var(--e-global-color-primary);
     transition: ease-in-out 0.6s;
-    /* box-shadow: 0px 10px 20px rgb(0 0 0 / 15%); */
+    
 }
 
 
@@ -422,14 +372,11 @@ html {
     font-weight: 700 !important;
 }
 
-/* .free-trial a:hover {
-    text-decoration: none;
-    color: var(--e-global-color-text) !important;
-} */
 
-/* Header */
 
-/* Footer */
+
+
+
 
 .footer-con {
     background: var(--e-global-color-secondary);
@@ -669,7 +616,7 @@ html {
     border-top: 1px solid rgb(255 255 255 / 10%);
 }
 
-/* Back to top button */
+
 
 #button {
     display: flex;
@@ -729,7 +676,7 @@ html {
 
 @keyframes spineer {
     from {
-        /* box-shadow: 0 0 0 0 rgb(20 8 45 / 40%) */
+        
         box-shadow: 0 0 0 0 rgb(39 119 252 / 40%)
     }
 
@@ -738,9 +685,9 @@ html {
     }
 }
 
-/* Preloader -------------------------------------------------------*/
 
-/* Loader Styles start here */
+
+
 .loader-mask {
     position: fixed;
     top: 0;
@@ -819,10 +766,10 @@ html {
     }
 }
 
-/* Preloader -------------------------------------------------------*/
 
-/*  */
-/* 404 page styling start here */
+
+
+
 .coming-soon-con,
 .error-section {
     height: 100vh;
@@ -873,7 +820,7 @@ html {
     margin-left: 0;
 }
 
-/* COMING SOON PAGE */
+
 .coming-soon-con .new-logo {
     margin-bottom: 35px;
 }
@@ -891,7 +838,7 @@ html {
     color: var(--e-global-color-accent);
 }
 
-/* coming soon countdown timer styling */
+
 .compaign_countdown ul {
     margin: 0;
     padding: 0;
@@ -950,7 +897,7 @@ html {
     flex-grow: 1;
 }
 
-/* BANNER SECTION */
+
 .banner-con {
     background-image: url(../images/banner-bg-img.jpg);
     background-size: cover;
@@ -999,20 +946,17 @@ html {
     color: var(--e-global-color-secondary);
 }
 
-/* .animated-robot {
-    animation: float 2s ease-in-out infinite;
-    transition: transform 0.4s ease-in-out;
-} */
+
 
 #typingText {
-    /* font-size: 1.2rem; */
+    
     white-space: nowrap;
     overflow: hidden;
     border-right: 2px solid var(--e-global-color-secondary);
     width: fit-content;
 }
 
-/* Floating up and down */
+
 @keyframes float {
     0% {
         transform: translateY(0px);
@@ -1027,7 +971,7 @@ html {
     }
 }
 
-/* Subtle glow animation */
+
 @keyframes glow {
     0% {
         filter: drop-shadow(0 0 5px rgba(39, 119, 252, 0.3));
@@ -1072,7 +1016,7 @@ html {
     box-shadow: 0px 9px 16px rgb(0 0 0 / 5%);
 }
 
-/*  */
+
 .popup-bubble {
     opacity: 0;
     transform: scale(0.8) translateY(10px);
@@ -1106,7 +1050,7 @@ html {
     transition: ease-in-out 0.6s;
 }
 
-/* CLIENT'S LOGO SECTION */
+
 .client-logo-con {
     padding-top: 80px;
     overflow: hidden;
@@ -1131,7 +1075,7 @@ html {
     transform: translateY(-3px);
 }
 
-/* AMAZING FEATURES SECTION */
+
 .amazing-features-con .feature-box {
     background-color: var(--e-global-color-light-blue);
     border-radius: 20px;
@@ -1255,7 +1199,7 @@ html {
     box-shadow: 0px 9px 16px rgb(0 0 0 / 5%);
 }
 
-/* HOW IT WORKS SECTION */
+
 .how-it-works-con {
     background-image: url(../images/work-banner-bg.jpg);
     background-size: cover;
@@ -1326,11 +1270,9 @@ html {
     bottom: 186px;
 }
 
-/* .animated-plane {
-    animation: hoverZigZag 4s ease-in-out infinite;
-} */
 
-/* Localized hover + zigzag motion */
+
+
 @keyframes hoverZigZag {
     0% {
         transform: translate(0px, 0px) rotate(0deg);
@@ -1358,7 +1300,7 @@ html {
 }
 
 
-/* FAQ SECTION */
+
 .faq-con .faq_content h2 {
     margin-bottom: 50px;
 }
@@ -1467,7 +1409,7 @@ html {
     bottom: 237px;
 }
 
-/*  WHY CHOOSE US SECTION */
+
 .why-choose-us-con .choose-outer-con {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -1523,7 +1465,7 @@ html {
     overflow: hidden;
 }
 
-/* Fun zig-zag flight animation */
+
 @keyframes zigzag-flight {
     0% {
         transform: translate(0, 0) rotate(-5deg);
@@ -1556,7 +1498,7 @@ html {
     }
 }
 
-/* PRICING PLAN SECTION */
+
 .pricing-plan-con {
     background-image: url(../images/pricing-plan-bg-img.jpg);
     background-repeat: no-repeat;
@@ -1644,7 +1586,7 @@ html {
     transform: translateY(-5px);
 }
 
-/* CTA SECTION */
+
 .call-to-action-con .cta-inner-con {
     background-image: url(../images/call-to-action-bg.jpg);
     background-repeat: no-repeat;
@@ -1681,7 +1623,7 @@ html {
     margin: auto;
 }
 
-/* TESTIMONIAL SECTION */
+
 .testimonial-box {
     background-color: var(--e-global-color-primary);
     border-radius: 20px;
@@ -1761,8 +1703,8 @@ html {
     z-index: 2;
 }
 
-/* SERVICES SECTION */
-/* SUB BANNER */
+
+
 .sub-banner-con {
     background-image: url(../images/sub-banner-bg-img.jpg);
     background-repeat: no-repeat;
@@ -1794,7 +1736,7 @@ html {
     left: 147px;
 }
 
-/* breadcrumb */
+
 
 .breadcrumb-item+.breadcrumb-item::before,
 .breadcrumb-item.active {
@@ -1827,10 +1769,7 @@ html {
 }
 
 
-/* .breadcrumb:hover .breadcrumb-item a,
-.breadcrumb:hover .breadcrumb-item.active {
-    color: var(--accent--color);
-} */
+
 
 .breadcrumb-item+.breadcrumb-item::before {
     color: var(--e-global-color-secondary);
@@ -1845,11 +1784,9 @@ html {
     padding-left: 0;
 }
 
-/* .breadcrumb:hover .breadcrumb-item+.breadcrumb-item::before {
-    color: var(--accent--color);
-} */
 
-/* OUR TEAM SECTION */
+
+
 .our-team-con figure img {
     border-radius: 20px;
     margin-bottom: 26px;
@@ -1919,7 +1856,7 @@ html {
     margin-bottom: 20px;
 }
 
-/* PRIVACY POLICY PAGE */
+
 .privacy-policy-content-con h2 {
     margin-bottom: 25px;
 }
@@ -1934,7 +1871,7 @@ html {
     line-height: 26px;
 }
 
-/* ABOUT US PAGE */
+
 .about-us-con .about-us-img-con img {
     border-radius: 40px;
     transition: ease-in-out 0.6s;
@@ -1996,7 +1933,7 @@ html {
     color: var(--e-global-color-primary);
 }
 
-/* STATISTICS SECTION */
+
 .statistics-con {
     background-image: url(../images/statistics-bg-img.jpg);
     background-repeat: no-repeat;
@@ -2057,7 +1994,7 @@ html {
     margin-bottom: 0;
 }
 
-/* PRICING PAGE */
+
 .pricing-plan-con.main-pricing-con {
     background-image: unset;
 }
@@ -2067,11 +2004,9 @@ html {
     border-bottom: 2px solid var(--e-global-color-accent);
 }
 
-/* .animate__animated {
-    --animate-duration: 0.1s;
-} */
 
-/* contact page */
+
+
 .contact-info-box {
     background-color: var(--e-global-color-primary);
     border-radius: 20px;
@@ -2103,14 +2038,14 @@ html {
     color: var(--e-global-color-accent);
 }
 
-/*  */
+
 .contact-form-con {
     background-image: url(../images/get-in-touch-bg.jpg);
     background-size: cover;
     background-repeat: no-repeat;
 }
 
-/* map section */
+
 .contact-map-con iframe {
     height: 546px;
     width: 100%;
@@ -2126,7 +2061,7 @@ html {
     filter: none;
 }
 
-/*  */
+
 
 .contact-form-con #contactpage span.error {
     font-size: 14px;
@@ -2181,7 +2116,7 @@ html {
     width: 100%;
     color: var(--e-global-color-secondary);
     float: left;
-    /* border: 2px solid transparent; */
+    
     border-radius: 12px;
     box-shadow: 2px 0px 50px rgb(0 0 0 / 3%);
 }
@@ -2205,7 +2140,7 @@ html {
 
 .contact-form-con form ul li input:focus,
 .contact-form-con form ul li textarea:focus {
-    /* background-color: var(--primary-color); */
+    
     border: 1px solid var(--e-global-color-accent);
     box-shadow: 0 1px 8px rgb(39 119 2552 / 15%);
 }
