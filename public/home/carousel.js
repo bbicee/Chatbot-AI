@@ -22,12 +22,12 @@ $(function () {
             },
             1500: {
                 items: 6
-                //  stagePadding: 50,
+                
             }
         }
     })
 })
-// js for home page robot comment loading text
+
 const text1 = "Tôi có thể giúp gì được cho bạn?";
 const text2 = "Chatbot ơi, cách dùng hàm VLOOKUP và XLOOKUP trong Excel khác nhau thế nào?";
 const element1 = document.getElementById("text1");
@@ -42,7 +42,7 @@ function typeText(text, element, delayBetweenLetters = 50, callback = null) {
             index++;
             setTimeout(type, delayBetweenLetters);
         } else if (callback) {
-            setTimeout(callback, 100); // small pause before next starts
+            setTimeout(callback, 100); 
         }
     }
     type();

@@ -11,8 +11,6 @@ import {
 } from "../config/chatApi";
 import { Context } from "./ContextDef";
 
-// ─── Context Provider ──────────────────────────────────────────────────────────
-
 const ContextProvider = ({ children }) => {
   const [input, setInput]                 = useState("");
   const [messages, setMessages]           = useState([]);
@@ -31,8 +29,6 @@ const ContextProvider = ({ children }) => {
     setActiveConvId(id);
   }
 
-  // ─── Load conversations from backend on mount ─────────────────────────────
-
   const loadConversations = useCallback(async () => {
     try {
       const anonId = getOrCreateAnonymousUserId();
@@ -44,8 +40,6 @@ const ContextProvider = ({ children }) => {
   }, []);
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
-
-  // ─── Actions ─────────────────────────────────────────────────────────────────
 
   const newChat = () => {
     if (abortControllerRef.current) abortControllerRef.current.abort();
@@ -75,7 +69,6 @@ const ContextProvider = ({ children }) => {
     setActiveConv(conv.id);
     setStreamingText("");
     setLoading(false);
-    // Restore quiz mode from the saved conversation type
     setIsQuizMode(conv.type === "quiz");
     try {
       const msgs = await getMessages(conv.id);
@@ -102,8 +95,6 @@ const ContextProvider = ({ children }) => {
   const stopChat = () => {
     if (abortControllerRef.current) abortControllerRef.current.abort();
   };
-
-  // ─── onGenerateQuiz: sends to /chat/quiz endpoint ────────────────────────────
 
   const onGenerateQuiz = async (prompt) => {
     const currentPrompt = typeof prompt === "string" ? prompt : input;
@@ -178,7 +169,6 @@ const ContextProvider = ({ children }) => {
     let convId       = activeConvIdRef.current;
     const isNewConv  = convId === null;
 
-    // Create a new conversation on the backend when starting fresh
     if (isNewConv) {
       try {
         const anonId = getOrCreateAnonymousUserId();
@@ -187,7 +177,6 @@ const ContextProvider = ({ children }) => {
         const title = currentPrompt.slice(0, 60);
         setActiveConv(convId);
         setConversations((prev) => [{ id: convId, title, created_at: conv.created_at, updated_at: conv.updated_at }, ...prev]);
-        // Update title asynchronously — don't block the chat
         updateConversationTitle(convId, title).catch(() => {});
       } catch (err) {
         console.error("[conversations] create failed:", err.message);
@@ -222,15 +211,12 @@ const ContextProvider = ({ children }) => {
         setMessages((prev) => [...prev, { role: "bot", text: botReply, isError }]);
         setStreamingText("");
         setLoading(false);
-        // Bubble conversation to top with fresh updated_at
         setConversations((prev) =>
           prev.map((c) => c.id === convId ? { ...c, updated_at: new Date().toISOString() } : c)
         );
       }
     }
   };
-
-  // ─── Context value ────────────────────────────────────────────────────────────
 
   return (
     <Context.Provider value={{

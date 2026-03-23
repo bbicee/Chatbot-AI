@@ -30,7 +30,6 @@ const Sidebar = () => {
 
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-      {/* LOGO ROW */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">AI</div>
         <span className="sidebar-logo-text">HCA Chatbot</span>
@@ -41,25 +40,21 @@ const Sidebar = () => {
           <img src={assets.menu_icon} alt="menu" />
         </div>
 
-        {/* NEW CHAT */}
         <div className={`new-chat-btn ${isChatMode ? "active" : ""}`} onClick={handleNewChat}>
           <img src={assets.plus_icon} alt="new chat" />
           <span className="nav-label">Cuộc trò chuyện mới</span>
         </div>
 
-        {/* NEW QUIZ */}
         <div className="new-quiz-btn" onClick={handleNewQuizChat}>
-          <span className="new-quiz-icon">🎯</span>
+          <span className="new-quiz-icon"><i className="fas fa-bullseye" /></span>
           <span className="nav-label">Tạo trắc nghiệm mới</span>
         </div>
 
-        {/* TRANG TÀI LIỆU */}
         <div className={`nav-item ${isDocsMode ? "active" : ""}`} onClick={() => navigate("/documents")}>
-          <span className="nav-emoji">📁</span>
+          <span className="nav-emoji"><i className="fas fa-folder" /></span>
           <span className="nav-label">Tài liệu học tập</span>
         </div>
 
-        {/* RECENT CONVERSATIONS */}
         {conversations.length > 0 && (
           <>
             <div className="divider" />
@@ -71,13 +66,13 @@ const Sidebar = () => {
                   className={`recent-entry ${conv.id === activeConvId ? "active" : ""} ${conv.type === "quiz" ? "quiz-entry" : ""}`}
                   onClick={() => handleLoadPrompt(conv)}
                 >
-                  <span className="entry-icon">{conv.type === "quiz" ? "🎯" : "💬"}</span>
+                  <span className="entry-icon">{conv.type === "quiz" ? <i className="fas fa-bullseye" /> : <i className="fas fa-comment" />}</span>
                   <span className="nav-label">{(conv.title || 'Cuộc trò chuyện').replace(/^\[Quiz\]\s*/,'').slice(0, 24)}{(conv.title || '').replace(/^\[Quiz\]\s*/,'').length > 24 ? "…" : ""}</span>
                   <button
                     className="delete-conv-btn"
                     onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
                     title="Xóa"
-                  >✕</button>
+                  ><i className="fas fa-times" /></button>
                 </div>
               ))}
             </div>
@@ -85,10 +80,9 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* BOTTOM SECTION */}
       <div className="sidebar-bottom">
         <div className="nav-item" onClick={() => window.location.href = "/home.html"}>
-          <span className="nav-emoji">🏠</span>
+          <span className="nav-emoji"><i className="fas fa-home" /></span>
           <span className="nav-label">Trang chủ</span>
         </div>
         <div className="nav-item">

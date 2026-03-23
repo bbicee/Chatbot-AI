@@ -4,9 +4,8 @@ import { getUsers, createUser, updateUser, deleteUser } from "../../services/use
 import axios from "axios";
 import "./AdminMain.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const apiUrl = import.meta.env.VITE_API_URL;
 
-// ─── Toast Hook ───────────────────────────────────────────────────────────────
 function useToast() {
   const [toasts, setToasts] = useState([]);
   const idRef = useRef(0);
@@ -28,72 +27,74 @@ function useToast() {
   return { toasts, show, remove };
 }
 
-// ─── Toast Renderer ───────────────────────────────────────────────────────────
+
 function ToastContainer({ toasts, onClose }) {
-  const icons = { success: "✅", error: "❌", info: "ℹ️" };
+  const icons = {
+    success: <i className="fas fa-check-circle" />,
+    error: <i className="fas fa-times-circle" />,
+    info: <i className="fas fa-info-circle" />,
+  };
   return (
     <div className="db-toast-container">
       {toasts.map((t) => (
         <div key={t.id} className={`db-toast db-toast-${t.type} ${t.removing ? "removing" : ""}`}>
           <div className="db-toast-icon">{icons[t.type]}</div>
           <div className="db-toast-msg">{t.msg}</div>
-          <button className="db-toast-close" onClick={() => onClose(t.id)}>✕</button>
+          <button className="db-toast-close" onClick={() => onClose(t.id)}><i className="fas fa-times" /></button>
         </div>
       ))}
     </div>
   );
 }
 
-// ─── Confirm Modal ────────────────────────────────────────────────────────────
+
 function ConfirmModal({ data, onConfirm, onCancel }) {
   if (!data) return null;
   return (
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onCancel()}>
       <div className="db-modal db-modal-sm">
-        <div className="db-confirm-icon">⚠️</div>
+        <div className="db-confirm-icon"><i className="fas fa-exclamation-triangle" /></div>
         <div className="db-confirm-title">Xác nhận xóa</div>
         <div className="db-confirm-msg">{data.msg}</div>
         <div className="db-modal-footer db-modal-footer-center">
           <button className="db-btn db-btn-secondary" onClick={onCancel}>Hủy</button>
-          <button className="db-btn db-btn-danger" onClick={onConfirm}>🗑 Xóa</button>
+          <button className="db-btn db-btn-danger" onClick={onConfirm}><i className="fas fa-trash" /> Xóa</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Logout Confirm ───────────────────────────────────────────────────────────
 function LogoutModal({ open, onCancel, onConfirm }) {
   if (!open) return null;
   return (
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onCancel()}>
       <div className="db-modal db-modal-sm">
-        <div className="db-confirm-icon">🚪</div>
+        <div className="db-confirm-icon"><i className="fas fa-sign-out-alt" /></div>
         <div className="db-confirm-title">Đăng xuất</div>
         <div className="db-confirm-msg">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</div>
         <div className="db-modal-footer db-modal-footer-center">
           <button className="db-btn db-btn-secondary" onClick={onCancel}>Hủy</button>
-          <button className="db-btn db-btn-primary" onClick={onConfirm}>🚪 Đăng xuất</button>
+          <button className="db-btn db-btn-primary" onClick={onConfirm}><i className="fas fa-sign-out-alt" /> Đăng xuất</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Overview Page ────────────────────────────────────────────────────────────
 function OverviewPage({ subjects, users }) {
   const totalChapters = subjects.reduce((a, s) => a + s.chapters.length, 0);
   const totalFiles = subjects.reduce((a, s) => a + s.chapters.reduce((b, c) => b + c.files.length, 0), 0);
   const [activity, setActivity] = useState([]);
 
   useEffect(() => {
-    axios.get(`${API_BASE}/activity?limit=10`)
+    axios.get(`${apiUrl}/activity?limit=10`)
       .then(({ data }) => setActivity(data))
       .catch(() => {});
   }, []);
 
   const formatTime = (isoStr) => {
-    // Supabase returns timestamps without timezone — append Z to treat as UTC
+    
     const d = new Date(isoStr.endsWith("Z") ? isoStr : isoStr + "Z");
     const now = new Date();
     const diffMs = now - d;
@@ -119,42 +120,42 @@ function OverviewPage({ subjects, users }) {
   return (
     <div className="db-page-body">
       <div className="db-ai-banner">
-        <div className="db-ai-banner-icon">🤖</div>
+        <div className="db-ai-banner-icon"><i className="fas fa-robot" /></div>
         <div>
           <div className="db-ai-banner-title">Hệ thống RAG Chatbot – Powered by Gemini AI</div>
           <div className="db-ai-banner-desc">
             Trợ lý học tập thông minh trả lời theo ngữ cảnh dựa trên tài liệu môn học đã được tải lên. Hỗ trợ đắc lực cho sinh viên trong quá trình học tập và ôn luyện.
           </div>
           <div className="db-ai-tags">
-            <span className="db-ai-tag">🧠 Gemini 2.5 Flash</span>
-            <span className="db-ai-tag">🗄 RAG Pipeline</span>
-            <span className="db-ai-tag">🔢 Embeddings</span>
+            <span className="db-ai-tag"><i className="fas fa-brain" /> Gemini 2.5 Flash</span>
+            <span className="db-ai-tag"><i className="fas fa-database" /> RAG Pipeline</span>
+            <span className="db-ai-tag"><i className="fas fa-hashtag" /> Embeddings</span>
           </div>
         </div>
       </div>
 
       <div className="db-stats-grid">
         <div className="db-stat-card">
-          <div className="db-stat-icon blue">📚</div>
+          <div className="db-stat-icon blue"><i className="fas fa-book" /></div>
           <div><div className="db-stat-value">{subjects.length}</div><div className="db-stat-label">Môn học</div></div>
         </div>
         <div className="db-stat-card">
-          <div className="db-stat-icon purple">📑</div>
+          <div className="db-stat-icon purple"><i className="fas fa-file-alt" /></div>
           <div><div className="db-stat-value">{totalChapters}</div><div className="db-stat-label">Chương</div></div>
         </div>
         <div className="db-stat-card">
-          <div className="db-stat-icon green">📄</div>
-          <div><div className="db-stat-value">{totalFiles}</div><div className="db-stat-label">Tài liệu PDF</div></div>
+          <div className="db-stat-icon green"><i className="fas fa-file" /></div>
+          <div><div className="db-stat-value">{totalFiles}</div><div className="db-stat-label">Tài liệu</div></div>
         </div>
         <div className="db-stat-card">
-          <div className="db-stat-icon orange">👥</div>
+          <div className="db-stat-icon orange"><i className="fas fa-users" /></div>
           <div><div className="db-stat-value">{users.length}</div><div className="db-stat-label">Tài khoản</div></div>
         </div>
       </div>
 
       <div className="db-card" style={{ margin: "0 0 20px" }}>
         <div className="db-card-header">
-          <div className="db-card-title">🕐 Hoạt động gần đây</div>
+          <div className="db-card-title"><i className="fas fa-clock" /> Hoạt động gần đây</div>
           <div style={{ fontSize: 12, color: "#a0aec0" }}>10 hoạt động gần nhất</div>
         </div>
         <div className="db-card-body">
@@ -176,7 +177,7 @@ function OverviewPage({ subjects, users }) {
   );
 }
 
-// ─── Subject Modal ────────────────────────────────────────────────────────────
+
 function SubjectModal({ data, onClose, onSave }) {
   const [name, setName] = useState(data?.name || "");
 
@@ -189,7 +190,7 @@ function SubjectModal({ data, onClose, onSave }) {
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="db-modal">
         <div className="db-modal-title">
-          <span className="db-modal-title-icon">📚</span>
+          <span className="db-modal-title-icon"><i className="fas fa-book" /></span>
           {data ? "Sửa môn học" : "Thêm môn học"}
         </div>
         <div className="db-modal-body">
@@ -208,7 +209,7 @@ function SubjectModal({ data, onClose, onSave }) {
   );
 }
 
-// ─── Chapter Modal ────────────────────────────────────────────────────────────
+
 function ChapterModal({ data, onClose, onSave }) {
   const [name, setName] = useState(data?.name || "");
 
@@ -216,7 +217,7 @@ function ChapterModal({ data, onClose, onSave }) {
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="db-modal">
         <div className="db-modal-title">
-          <span className="db-modal-title-icon">📑</span>
+          <span className="db-modal-title-icon"><i className="fas fa-file-alt" /></span>
           {data ? "Sửa chương" : "Thêm chương"}
         </div>
         <div className="db-modal-body">
@@ -237,7 +238,7 @@ function ChapterModal({ data, onClose, onSave }) {
   );
 }
 
-// ─── Upload PDF Modal ─────────────────────────────────────────────────────────
+
 function UploadModal({ chapterInfo, onClose, onSave, uploading }) {
   const [file, setFile] = useState(null);
   const [displayName, setDisplayName] = useState("");
@@ -259,7 +260,7 @@ function UploadModal({ chapterInfo, onClose, onSave, uploading }) {
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="db-modal">
         <div className="db-modal-title">
-          <span className="db-modal-title-icon">📤</span>
+          <span className="db-modal-title-icon"><i className="fas fa-upload" /></span>
           Tải lên tài liệu
         </div>
         <div className="db-modal-body">
@@ -276,7 +277,7 @@ function UploadModal({ chapterInfo, onClose, onSave, uploading }) {
               onDragLeave={() => setDrag(false)}
               onDrop={handleDrop}
             >
-              <div className="db-upload-icon">☁️</div>
+              <div className="db-upload-icon"><i className="fas fa-cloud-upload-alt" /></div>
               <div className="db-upload-hint">Nhấn để chọn file hoặc kéo thả vào đây</div>
               <div className="db-upload-filename">
                 {file ? `✓ ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)` : "Hỗ trợ: PDF, DOCX, TXT (tối đa 20MB)"}
@@ -308,7 +309,7 @@ function UploadModal({ chapterInfo, onClose, onSave, uploading }) {
             onClick={() => file && displayName.trim() && !uploading && onSave(file, displayName.trim())}
             disabled={!file || !displayName.trim() || uploading}
           >
-            {uploading ? "⏳ Đang tải lên..." : "📤 Tải lên"}
+            {uploading ? <><i className="fas fa-spinner fa-spin" /> Đang tải lên...</> : <><i className="fas fa-upload" /> Tải lên</>}
           </button>
         </div>
       </div>
@@ -316,7 +317,7 @@ function UploadModal({ chapterInfo, onClose, onSave, uploading }) {
   );
 }
 
-// ─── Rename File Modal ────────────────────────────────────────────────────────
+
 function RenameFileModal({ file, onClose, onSave }) {
   const [name, setName] = useState(file.file_name);
 
@@ -324,7 +325,7 @@ function RenameFileModal({ file, onClose, onSave }) {
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="db-modal">
         <div className="db-modal-title">
-          <span className="db-modal-title-icon">✏️</span>
+          <span className="db-modal-title-icon"><i className="fas fa-pen" /></span>
           Đổi tên tài liệu
         </div>
         <div className="db-modal-body">
@@ -345,7 +346,7 @@ function RenameFileModal({ file, onClose, onSave }) {
             onClick={() => name.trim() && onSave(name.trim())}
             disabled={!name.trim()}
           >
-            💾 Lưu
+            <i className="fas fa-save" /> Lưu
           </button>
         </div>
       </div>
@@ -353,7 +354,7 @@ function RenameFileModal({ file, onClose, onSave }) {
   );
 }
 
-// ─── Subjects Page ────────────────────────────────────────────────────────────
+
 function SubjectsPage({ subjects, loadData, toast }) {
   const [filter] = useState("");
   const [openIds, setOpenIds] = useState(() => new Set(subjects.map((s) => s.id)));
@@ -380,14 +381,14 @@ function SubjectsPage({ subjects, loadData, toast }) {
     s.name.toLowerCase().includes(filter.toLowerCase())
   );
 
-  // Subject CRUD
+  
   const saveSubject = async ({ name }) => {
     try {
       if (subjectModal?.editing) {
-        await axios.put(`${API_BASE}/subjects/${subjectModal.editing.id}`, { name });
+        await axios.put(`${apiUrl}/subjects/${subjectModal.editing.id}`, { name });
         toast("Cập nhật môn học thành công!");
       } else {
-        const { data } = await axios.post(`${API_BASE}/subjects`, { name });
+        const { data } = await axios.post(`${apiUrl}/subjects`, { name });
         setOpenIds((prev) => new Set([...prev, data.id]));
         toast("Thêm môn học thành công!");
       }
@@ -403,7 +404,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
       msg: `Xóa môn học "${s.name}"?`,
       fn: async () => {
         try {
-          await axios.delete(`${API_BASE}/subjects/${s.id}`);
+          await axios.delete(`${apiUrl}/subjects/${s.id}`);
           await loadData();
           toast("Đã xóa môn học!", "info");
         } catch (err) {
@@ -413,15 +414,15 @@ function SubjectsPage({ subjects, loadData, toast }) {
     });
   };
 
-  // Chapter CRUD
+  
   const saveChapter = async ({ name }) => {
     const { subjectId, editing } = chapterModal;
     try {
       if (editing) {
-        await axios.put(`${API_BASE}/chapters/${editing.id}`, { name });
+        await axios.put(`${apiUrl}/chapters/${editing.id}`, { name });
         toast("Cập nhật chương thành công!");
       } else {
-        await axios.post(`${API_BASE}/chapters`, { name, subject_id: subjectId });
+        await axios.post(`${apiUrl}/chapters`, { name, subject_id: subjectId });
         setOpenIds((prev) => new Set([...prev, subjectId]));
         toast("Thêm chương thành công!");
       }
@@ -437,7 +438,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
       msg: `Xóa chương "${c.name}"?`,
       fn: async () => {
         try {
-          await axios.delete(`${API_BASE}/chapters/${c.id}`);
+          await axios.delete(`${apiUrl}/chapters/${c.id}`);
           await loadData();
           toast("Đã xóa chương!", "info");
         } catch (err) {
@@ -447,7 +448,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
     });
   };
 
-  // File CRUD
+  
   const saveFile = async (file, displayName) => {
     const { chapterId } = uploadModal;
     setUploading(true);
@@ -456,7 +457,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
       formData.append("file", file);
       formData.append("chapter_id", chapterId);
       formData.append("display_name", displayName);
-      await axios.post(`${API_BASE}/files/upload`, formData, {
+      await axios.post(`${apiUrl}/files/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       await loadData();
@@ -474,7 +475,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
       msg: `Xóa file "${file.file_name}"?`,
       fn: async () => {
         try {
-          await axios.delete(`${API_BASE}/files/${file.id}`);
+          await axios.delete(`${apiUrl}/files/${file.id}`);
           await loadData();
           toast("Đã xóa file!", "info");
         } catch (err) {
@@ -486,7 +487,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
 
   const renameFile = async (newName) => {
     try {
-      await axios.put(`${API_BASE}/files/${renameModal.id}`, { file_name: newName });
+      await axios.put(`${apiUrl}/files/${renameModal.id}`, { file_name: newName });
       await loadData();
       toast("Đổi tên thành công!");
       setRenameModal(null);
@@ -521,7 +522,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
       <div className="db-subject-list">
         {filtered.length === 0 && (
           <div className="db-empty-state">
-            <div>📚</div>
+            <div><i className="fas fa-book" /></div>
             <p>Chưa có môn học nào. Nhấn "Thêm môn học" để bắt đầu.</p>
           </div>
         )}
@@ -535,18 +536,16 @@ function SubjectsPage({ subjects, loadData, toast }) {
                 onClick={() => toggleOpen(s.id)}
               >
                 <div className="db-subject-caret">›</div>
-                <div className="db-subject-icon">📖</div>
+                <div className="db-subject-icon"><i className="fas fa-book-open" /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="db-subject-name">
                     {s.name}
                   </div>
-                  <div className="db-subject-meta">{s.chapters.length} chương · {fileCount} tài liệu PDF</div>
+                  <div className="db-subject-meta">{s.chapters.length} chương · {fileCount} tài liệu</div>
                 </div>
                 <div className="db-subject-actions" onClick={(e) => e.stopPropagation()}>
-                  <button className="db-btn db-btn-secondary db-btn-sm"
-                    onClick={() => setSubjectModal({ editing: s })}>✏️ Sửa</button>
-                  <button className="db-btn db-btn-danger db-btn-sm"
-                    onClick={() => deleteSubject(s)}>🗑 Xóa</button>
+                  <button className="db-txt-btn" onClick={() => setSubjectModal({ editing: s })}>Sửa</button>
+                  <button className="db-txt-btn danger" onClick={() => deleteSubject(s)}>Xóa</button>
                 </div>
               </div>
 
@@ -554,37 +553,31 @@ function SubjectsPage({ subjects, loadData, toast }) {
                 <div className="db-chapter-list">
                   {s.chapters.map((c) => (
                     <div className="db-chapter-item" key={c.id}>
-                      <div className="db-chapter-icon">📑</div>
+                      <div className="db-chapter-icon"><i className="fas fa-file-alt" /></div>
                       <div className="db-chapter-info">
                         <div className="db-chapter-name">{c.name}</div>
                         <div className="db-chapter-files-label">
-                          {c.files.length > 0 ? `${c.files.length} file PDF` : "Chưa có tài liệu"}
+                          {c.files.length > 0 ? `${c.files.length} file` : "Chưa có tài liệu"}
                         </div>
                         {c.files.length > 0 && (
                           <div className="db-file-list">
                             {c.files.map((f) => (
                               <div className="db-file-item" key={f.id}>
-                                <span className="db-file-icon">📕</span>
-                                <a href={f.file_url} target="_blank" rel="noreferrer" className="db-file-name">{f.file_name}</a>
-                                <span className="db-file-size" data-type={f.file_type?.toUpperCase()}>{f.file_type?.toUpperCase()}</span>
-                                <button className="db-file-edit-btn"
-                                  onClick={() => setRenameModal(f)}>✏️</button>
-                                <button className="db-file-delete-btn"
-                                  onClick={() => deleteFile(f)}>✕</button>
+                                <span className="db-file-icon"><i className="fas fa-file-pdf" /></span>
+                                <a href={f.file_url} target="_blank" rel="noreferrer" className="db-file-name">
+                                  {f.file_name?.includes('.') ? f.file_name : `${f.file_name}.${(f.file_type || '').toLowerCase()}`}
+                                </a>
+                                        <button className="db-txt-btn" onClick={() => setRenameModal(f)}>Sửa</button>
+                                <button className="db-txt-btn danger" onClick={() => deleteFile(f)}>Xóa</button>
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
                       <div className="db-chapter-actions">
-                        <button className="db-btn db-btn-secondary db-btn-sm"
-                          onClick={() => setUploadModal({ chapterId: c.id, subjectId: s.id })}>
-                          📤 Upload PDF
-                        </button>
-                        <button className="db-btn db-btn-warning db-btn-sm"
-                          onClick={() => setChapterModal({ subjectId: s.id, editing: c })}>✏️</button>
-                        <button className="db-btn db-btn-danger db-btn-sm"
-                          onClick={() => deleteChapter(c)}>🗑</button>
+                        <button className="db-txt-btn upload" onClick={() => setUploadModal({ chapterId: c.id, subjectId: s.id })}><i className="fas fa-upload" />&nbsp; Upload</button>
+                        <button className="db-txt-btn" onClick={() => setChapterModal({ subjectId: s.id, editing: c })}>Sửa</button>
+                        <button className="db-txt-btn danger" onClick={() => deleteChapter(c)}>Xóa</button>
                       </div>
                     </div>
                   ))}
@@ -599,7 +592,6 @@ function SubjectsPage({ subjects, loadData, toast }) {
         })}
       </div>
 
-      {/* Modals */}
       {subjectModal && (
         <SubjectModal
           data={subjectModal.editing}
@@ -640,7 +632,7 @@ function SubjectsPage({ subjects, loadData, toast }) {
   );
 }
 
-// ─── User Modal ───────────────────────────────────────────────────────────────
+
 function UserModal({ data, onClose, onSave, canEditRole = true }) {
   const [name, setName] = useState(data?.name || "");
   const [username, setUsername] = useState("");
@@ -652,7 +644,7 @@ function UserModal({ data, onClose, onSave, canEditRole = true }) {
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="db-modal">
         <div className="db-modal-title">
-          <span className="db-modal-title-icon">{isEdit ? "✏️" : "👤"}</span>
+          <span className="db-modal-title-icon">{isEdit ? <i className="fas fa-pen" /> : <i className="fas fa-user" />}</span>
           {isEdit ? `Sửa tài khoản: ${data.username}` : "Thêm tài khoản"}
         </div>
         <div className="db-modal-body">
@@ -718,7 +710,7 @@ function UserModal({ data, onClose, onSave, canEditRole = true }) {
   );
 }
 
-// ─── Change Password Modal ────────────────────────────────────────────────────
+
 function ChangePasswordModal({ user, onClose, onSave }) {
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -726,7 +718,7 @@ function ChangePasswordModal({ user, onClose, onSave }) {
   return (
     <div className="db-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="db-modal">
-        <div className="db-modal-title"><span className="db-modal-title-icon">🔑</span> Đổi mật khẩu</div>
+        <div className="db-modal-title"><span className="db-modal-title-icon"><i className="fas fa-key" /></span> Đổi mật khẩu</div>
         <div className="db-modal-body">
           <div className="db-form-group">
             <label className="db-form-label">Tài khoản</label>
@@ -745,14 +737,14 @@ function ChangePasswordModal({ user, onClose, onSave }) {
         </div>
         <div className="db-modal-footer">
           <button className="db-btn db-btn-secondary" onClick={onClose}>Hủy</button>
-          <button className="db-btn db-btn-primary" onClick={() => onSave(newPw, confirmPw)}>💾 Cập nhật</button>
+          <button className="db-btn db-btn-primary" onClick={() => onSave(newPw, confirmPw)}><i className="fas fa-save" /> Cập nhật</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Accounts Page ────────────────────────────────────────────────────────────
+
 function AccountsPage({ users, setUsers, currentUser, toast }) {
   const [filter, setFilter] = useState("");
   const [userModal, setUserModal] = useState(null);
@@ -768,11 +760,11 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
     );
   });
 
-  // ── PUT /users/:id  or  POST /users ─────────────────────────────────────
+  
   const saveUser = async ({ username, name, password, role, isEdit }) => {
     if (!name.trim()) { toast("Vui lòng nhập họ và tên!", "error"); return; }
     if (!isEdit) {
-      // CREATE
+      
       if (!username.trim()) { toast("Vui lòng nhập tên đăng nhập!", "error"); return; }
       if (!password) { toast("Vui lòng nhập mật khẩu!", "error"); return; }
       if (password.length < 6) { toast("Mật khẩu phải có ít nhất 6 ký tự!", "error"); return; }
@@ -789,7 +781,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
         toast("Lỗi kết nối!", "error"); return;
       }
     } else {
-      // UPDATE
+      
       const id = userModal.editing.id;
       const body = isAdmin ? { name: name.trim(), role } : { name: name.trim() };
       try {
@@ -809,7 +801,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
     setUserModal(null);
   };
 
-  // ── DELETE /users/:id ─────────────────────────────────────────────────────
+  
   const handleDeleteUser = (u) => {
     setConfirm({
       msg: `Xóa tài khoản "${u.username || u.name}"? Thao tác này không thể hoàn tác!`,
@@ -829,7 +821,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
     });
   };
 
-  // ── PUT /users/:id (password) ─────────────────────────────────────────────
+  
   const changePassword = async (newPw, confirmPw) => {
     if (!newPw) { toast("Vui lòng nhập mật khẩu mới!", "error"); return; }
     if (newPw.length < 6) { toast("Mật khẩu phải có ít nhất 6 ký tự!", "error"); return; }
@@ -867,7 +859,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
         </div>
         <div className="db-section-header-actions">
           <div className="db-search-bar">
-            <span className="db-search-icon">🔍</span>
+            <span className="db-search-icon"><i className="fas fa-search" /></span>
             <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Tìm tài khoản..." />
           </div>
           {isAdmin && (
@@ -880,7 +872,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
 
       <div className="db-card">
         <div className="db-card-header">
-          <div className="db-card-title">📋 Danh sách tài khoản</div>
+          <div className="db-card-title"><i className="fas fa-list" /> Danh sách tài khoản</div>
           <span style={{ fontSize: 12, color: "#8892a4" }}>{users.length} tài khoản</span>
         </div>
         <div className="db-table-wrap">
@@ -899,7 +891,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={isAdmin ? 6 : 3}>
-                    <div className="db-empty-state"><div>👥</div><p>Không tìm thấy tài khoản nào.</p></div>
+                    <div className="db-empty-state"><div><i className="fas fa-users" /></div><p>Không tìm thấy tài khoản nào.</p></div>
                   </td>
                 </tr>
               ) : (
@@ -911,7 +903,6 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
                     <tr key={u.id}>
                       <td style={{ color: "#aab4cc", fontSize: 12 }}>{i + 1}</td>
 
-                      {/* Username – admin only */}
                       {isAdmin && (
                         <td>
                           <div className="db-user-cell">
@@ -929,7 +920,6 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
                         </td>
                       )}
 
-                      {/* Name – everyone sees */}
                       <td>
                         <div className="db-user-cell">
                           {!isAdmin && (
@@ -949,7 +939,6 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
                         </div>
                       </td>
 
-                      {/* Role badge – admin only */}
                       {isAdmin && (
                         <td>
                           <span className={`db-badge ${u.role === 1 ? "db-badge-admin" : "db-badge-user"}`}>
@@ -960,7 +949,6 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
                         </td>
                       )}
 
-                      {/* Created at – admin only */}
                       {isAdmin && (
                         <td style={{ color: "#8892a4", fontSize: 12 }}>
                           {u.created_at
@@ -969,20 +957,19 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
                         </td>
                       )}
 
-                      {/* Actions */}
                       <td>
                         <div className="db-td-actions">
                           {canEdit && (
                             <button className="db-btn db-btn-secondary db-btn-sm"
-                              onClick={() => setUserModal({ editing: u })}>✏️ Sửa</button>
+                              onClick={() => setUserModal({ editing: u })}><i className="fas fa-pen" /> Sửa</button>
                           )}
                           {(isAdmin || isOwnRow) && (
                             <button className="db-btn db-btn-warning db-btn-sm"
-                              onClick={() => setChangePwModal(u)}>🔑 Đổi MK</button>
+                              onClick={() => setChangePwModal(u)}><i className="fas fa-key" /> Đổi MK</button>
                           )}
                           {canDelete && (
                             <button className="db-btn db-btn-danger db-btn-sm"
-                              onClick={() => handleDeleteUser(u)}>🗑 Xóa</button>
+                              onClick={() => handleDeleteUser(u)}><i className="fas fa-trash" /> Xóa</button>
                           )}
                         </div>
                       </td>
@@ -1021,16 +1008,23 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
   );
 }
 
-// ─── Documents Page ─────────────────────────────────────────────────────────
+
 function DocumentsPage({ subjects }) {
+  const getDisplayName = (name, mime) => {
+    if (!name || name.includes('.')) return name;
+    const ext = (mime || '').split('/').pop()
+      .replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx')
+      .toLowerCase();
+    return ext ? `${name}.${ext}` : name;
+  };
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [openSubjects, setOpenSubjects] = useState(() => new Set(subjects.map((s) => s.id)));
-  const [openChapters, setOpenChapters] = useState(() => new Set(subjects.flatMap((s) => s.chapters.map((c) => c.id))));
+  const [openChapters, setOpenChapters] = useState(new Set());
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenSubjects(new Set(subjects.map((s) => s.id)));
-    setOpenChapters(new Set(subjects.flatMap((s) => s.chapters.map((c) => c.id))));
   }, [subjects]);
 
   const toggleSubject = (id) =>
@@ -1043,10 +1037,9 @@ function DocumentsPage({ subjects }) {
 
   return (
     <div className="db-docs-layout">
-      {/* ── Sidebar tree ── */}
       <div className="db-docs-sidebar">
         <div className="db-docs-sidebar-heading">
-          <span>📖 Tài liệu học tập</span>
+          <span><i className="fas fa-book-open" /> Tài liệu học tập</span>
           <span className="db-docs-count">{totalFiles} tài liệu</span>
         </div>
 
@@ -1055,15 +1048,13 @@ function DocumentsPage({ subjects }) {
         )}
 
         {subjects.map((subject) => (
-          <div key={subject.id} className="db-docs-subject">
+          <div key={subject.id}>
             <div
-              className={`db-docs-subject-header ${
-                openSubjects.has(subject.id) ? "open" : ""
-              }`}
+              className={`db-docs-subject-header ${openSubjects.has(subject.id) ? "open" : ""}`}
               onClick={() => toggleSubject(subject.id)}
             >
               <span className="db-docs-arrow">{openSubjects.has(subject.id) ? "▾" : "▸"}</span>
-              <span>📚</span>
+              <span><i className="fas fa-book" /></span>
               <span className="db-docs-label">{subject.name}</span>
               <span className="db-docs-badge">{subject.chapters.reduce((a, c) => a + c.files.length, 0)}</span>
             </div>
@@ -1071,13 +1062,11 @@ function DocumentsPage({ subjects }) {
             {openSubjects.has(subject.id) && subject.chapters.map((chapter) => (
               <div key={chapter.id}>
                 <div
-                  className={`db-docs-chapter-header ${
-                    openChapters.has(chapter.id) ? "open" : ""
-                  }`}
+                  className={`db-docs-chapter-header ${openChapters.has(chapter.id) ? "open" : ""}`}
                   onClick={() => toggleChapter(chapter.id)}
                 >
                   <span className="db-docs-arrow">{openChapters.has(chapter.id) ? "▾" : "▸"}</span>
-                  <span>📂</span>
+                  <span><i className="fas fa-folder-open" /></span>
                   <span className="db-docs-label">{chapter.name}</span>
                   <span className="db-docs-badge">{chapter.files.length}</span>
                 </div>
@@ -1088,16 +1077,8 @@ function DocumentsPage({ subjects }) {
                     className={`db-docs-file-item ${selectedFile?.id === file.id ? "active" : ""}`}
                     onClick={() => setSelectedFile(file)}
                   >
-                    <span>📄</span>
-                    <span className="db-docs-file-name">{file.file_name}</span>
-                    <span
-                      className="db-docs-file-type"
-                      data-type={(file.file_type?.split("/").pop() || "file").replace("vnd.openxmlformats-officedocument.wordprocessingml.document", "docx").toUpperCase()}
-                    >
-                      {(file.file_type?.split("/").pop() || "file").replace(
-                        "vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"
-                      ).toUpperCase()}
-                    </span>
+                    <span><i className="fas fa-file" /></span>
+                    <span className="db-docs-file-name">{getDisplayName(file.file_name, file.file_type)}</span>
                   </div>
                 ))}
               </div>
@@ -1106,28 +1087,22 @@ function DocumentsPage({ subjects }) {
         ))}
       </div>
 
-      {/* ── Viewer ── */}
       <div className="db-docs-content">
         {selectedFile ? (
           <>
-            <div className="db-docs-content-header">
-              <span className="db-docs-content-title">📄 {selectedFile.file_name}</span>
+            <div className="db-docs-header">
+              <span><i className="fas fa-file" /> {selectedFile.file_name}</span>
               <div style={{ display: "flex", gap: 8 }}>
                 <a
                   href={selectedFile.file_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="db-btn db-btn-secondary"
-                  style={{ textDecoration: "none", fontSize: 13, padding: "6px 14px" }}
+                  className="db-docs-open-btn"
                 >
-                  ↗ Mở tab mới
+                  Mở tab mới
                 </a>
-                <button
-                  className="db-btn db-btn-secondary"
-                  style={{ fontSize: 13, padding: "6px 14px" }}
-                  onClick={() => setSelectedFile(null)}
-                >
-                  ✕ Đóng
+                <button className="db-docs-close-btn" onClick={() => setSelectedFile(null)}>
+                  Đóng
                 </button>
               </div>
             </div>
@@ -1143,9 +1118,11 @@ function DocumentsPage({ subjects }) {
           </>
         ) : (
           <div className="db-docs-empty">
-            <div className="db-docs-empty-icon">📖</div>
-            <p className="db-docs-empty-title">Chọn một tài liệu để xem</p>
-            <p className="db-docs-empty-hint">Mở rộng môn học và chương từ danh sách bên trái, sau đó nhấn vào tài liệu để xem nội dung.</p>
+            <div className="db-docs-empty-inner">
+              <div className="db-docs-empty-icon"><i className="fas fa-book-open" /></div>
+              <p>Chọn một tài liệu để xem</p>
+              <span>Mở rộng môn học và chương từ danh sách bên trái, sau đó nhấn vào tài liệu để xem nội dung.</span>
+            </div>
           </div>
         )}
       </div>
@@ -1153,7 +1130,7 @@ function DocumentsPage({ subjects }) {
   );
 }
 
-// ─── Topbar ───────────────────────────────────────────────────────────────────
+
 const PAGE_TITLES = {
   overview: "Tổng quan",
   subjects: "Quản lý môn học",
@@ -1175,7 +1152,7 @@ function Topbar({ activePage, currentUser }) {
       </div>
       <div className="db-topbar-right">
         <button className="db-topbar-chatbot-link" onClick={() => navigate("/chatbot")}>
-          🤖 Chatbot
+          <i className="fas fa-robot" /> Chatbot
         </button>
         <div className="db-topbar-user-info">
           <div className="db-topbar-user-name">{displayName}</div>
@@ -1189,7 +1166,7 @@ function Topbar({ activePage, currentUser }) {
   );
 }
 
-// ─── DashboardMain ────────────────────────────────────────────────────────────
+
 // eslint-disable-next-line no-unused-vars
 const DashboardMain = ({ activePage, onLogout }) => {
   const currentUser = (() => {
@@ -1205,9 +1182,9 @@ const DashboardMain = ({ activePage, onLogout }) => {
   const loadData = useCallback(async () => {
     try {
       const [{ data: subjectsData }, { data: chaptersData }, { data: filesData }] = await Promise.all([
-        axios.get(`${API_BASE}/subjects`),
-        axios.get(`${API_BASE}/chapters`),
-        axios.get(`${API_BASE}/files`),
+        axios.get(`${apiUrl}/subjects`),
+        axios.get(`${apiUrl}/chapters`),
+        axios.get(`${apiUrl}/files`),
       ]);
       const nested = subjectsData.map((s) => ({
         ...s,
@@ -1224,7 +1201,7 @@ const DashboardMain = ({ activePage, onLogout }) => {
     }
   }, []);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadData(); }, []);
 
   useEffect(() => {

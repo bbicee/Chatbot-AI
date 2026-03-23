@@ -17,11 +17,11 @@ $(function () {
     });
 });
 
-// wow js
+
 new WOW().init();
 
 
-// comingsoon page countdown js
+
 $(function () {
     if (document.getElementById("days") !== null) {
         const second = 1000,
@@ -41,7 +41,7 @@ $(function () {
         if (today > birthday) {
             birthday = dayMonth + nextYear;
         }
-        //end
+        
 
         const countDown = new Date(birthday).getTime(),
             x = setInterval(function () {
@@ -58,7 +58,7 @@ $(function () {
                     document.getElementById("minutes").innerText = minutes,
                     document.getElementById("seconds").innerText = seconds;
 
-                //do something later when date is reached
+                
                 if (distance < 0) {
                     clearInterval(x);
                     var items = document.querySelectorAll(".compaign_countdown");
@@ -68,7 +68,7 @@ $(function () {
                         }
                     }
                 }
-                //seconds
+                
             }, 0)
     }
 }());

@@ -1,5 +1,4 @@
-// Base URL — set VITE_API_URL in your .env file to override
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const getToken = () => localStorage.getItem("token");
 
@@ -8,9 +7,8 @@ const authHeaders = () => ({
   Authorization: `Bearer ${getToken()}`,
 });
 
-// ── POST /users/login ─────────────────────────────────────────────────────────
 export const loginUser = async (username, password) => {
-  const res = await fetch(`${API_BASE}/users/login`, {
+  const res = await fetch(`${apiUrl}/users/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -18,17 +16,15 @@ export const loginUser = async (username, password) => {
   return res.json();
 };
 
-// ── GET /users ────────────────────────────────────────────────────────────────
 export const getUsers = async () => {
-  const res = await fetch(`${API_BASE}/users`, {
+  const res = await fetch(`${apiUrl}/users`, {
     headers: authHeaders(),
   });
   return res.json();
 };
 
-// ── POST /users ───────────────────────────────────────────────────────────────
 export const createUser = async (data) => {
-  const res = await fetch(`${API_BASE}/users/register`, {
+  const res = await fetch(`${apiUrl}/users/register`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(data),
@@ -36,9 +32,8 @@ export const createUser = async (data) => {
   return res.json();
 };
 
-// ── PUT /users/:id ────────────────────────────────────────────────────────────
 export const updateUser = async (id, data) => {
-  const res = await fetch(`${API_BASE}/users/${id}`, {
+  const res = await fetch(`${apiUrl}/users/${id}`, {
     method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(data),
@@ -46,9 +41,8 @@ export const updateUser = async (id, data) => {
   return res.json();
 };
 
-// ── DELETE /users/:id ─────────────────────────────────────────────────────────
 export const deleteUser = async (id) => {
-  const res = await fetch(`${API_BASE}/users/${id}`, {
+  const res = await fetch(`${apiUrl}/users/${id}`, {
     method: "DELETE",
     headers: authHeaders(),
   });

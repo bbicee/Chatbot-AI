@@ -9,13 +9,11 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
 
   return (
     <div className={`db-sidebar ${collapsed ? "collapsed" : ""}`}>
-      {/* LOGO */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">AI</div>
         <span className="sidebar-logo-text">EduBot Admin</span>
       </div>
 
-      {/* TOP NAV */}
       <div className="sidebar-top">
         <div className="menu-btn" onClick={() => setCollapsed((p) => !p)}>
           <img src={assets.menu_icon} alt="menu" />
@@ -26,7 +24,7 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
           className={`nav-item ${activePage === "overview" ? "active" : ""}`}
           onClick={() => onNavigate("overview")}
         >
-          <span className="nav-icon">📊</span>
+          <span className="nav-icon"><i className="fas fa-chart-bar" /></span>
           <span className="nav-label">Tổng quan</span>
         </button>
 
@@ -35,14 +33,14 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
           className={`nav-item ${activePage === "subjects" ? "active" : ""}`}
           onClick={() => onNavigate("subjects")}
         >
-          <span className="nav-icon">📚</span>
+          <span className="nav-icon"><i className="fas fa-book" /></span>
           <span className="nav-label">Quản lý môn học</span>
         </button>
         <button
           className={`nav-item ${activePage === "accounts" ? "active" : ""}`}
           onClick={() => onNavigate("accounts")}
         >
-          <span className="nav-icon">👥</span>
+          <span className="nav-icon"><i className="fas fa-users" /></span>
           <span className="nav-label">Quản lý tài khoản</span>
         </button>
 
@@ -51,19 +49,18 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
           className={`nav-item ${activePage === "documents" ? "active" : ""}`}
           onClick={() => onNavigate("documents")}
         >
-          <span className="nav-icon">📖</span>
-          <span className="nav-label">Xem tài liệu</span>
+          <span className="nav-icon"><i className="fas fa-folder" /></span>
+          <span className="nav-label">Tài liệu học tập</span>
         </button>
       </div>
 
-      {/* BOTTOM */}
       <div className="sidebar-bottom">
         <button className="nav-item" onClick={() => navigate("/chatbot")}>
-          <span className="nav-icon">🤖</span>
+          <span className="nav-icon"><i className="fas fa-robot" /></span>
           <span className="nav-label">Mở Chatbot</span>
         </button>
         <button className="db-logout-btn" onClick={onLogout}>
-          <span className="nav-icon">🚪</span>
+          <span className="nav-icon"><i className="fas fa-sign-out-alt" /></span>
           <span className="nav-label">Đăng xuất</span>
         </button>
       </div>

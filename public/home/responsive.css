@@ -1,6 +1,6 @@
 @media screen and (min-width:1200px) {
 
-    /* Home */
+    
     .container {
         max-width: 1417px;
         margin: auto;
@@ -42,12 +42,12 @@
         padding-left: 0;
     }
 
-    /* Back to top button */
+    
     #button {
         right: 30px;
     }
 
-    /* 404 page styling start here*/
+    
     .error-con h2 {
         font-size: 120px;
         line-height: 125px;
@@ -60,8 +60,8 @@
         margin-bottom: 30px;
     }
 
-    /* 404 page styling end here */
-    /* coming soon page styling start here */
+    
+    
     .coming-soon-con h2 {
         font-size: 80px;
         line-height: 80px;
@@ -73,7 +73,7 @@
         height: 55px;
     }
 
-    /* coming soon page styling end here */
+    
     .error-con h2 i {
         font-size: 110px;
         line-height: 130px;
@@ -92,7 +92,7 @@
         padding-top: 100px;
     }
 
-    /* contact */
+    
     .sub-banner-img-con img {
         width: 100%;
     }
@@ -117,7 +117,7 @@
         left: 0;
     }
 
-    /*  */
+    
     .contact-info-box p br {
         display: none;
     }
@@ -358,7 +358,7 @@
         line-height: 48px;
     }
 
-    /* h3 {font-size: 22px; line-height: 28px;} */
+    
     p {
         font-size: 16px;
         line-height: 24px;
@@ -416,7 +416,7 @@
         right: 8px;
     }
 
-    /* Back to top button */
+    
     #button {
         width: 60px;
         height: 60px;
@@ -428,7 +428,7 @@
         line-height: 30px;
     }
 
-    /*  header */
+    
     .header-con .navbar-expand-lg .navbar-nav {
         gap: 18px;
     }
@@ -507,7 +507,7 @@
         padding: 15px 0;
     }
 
-    /* contact */
+    
     .sub-banner-con p {
         font-size: 19px;
         line-height: 29px;
@@ -800,7 +800,7 @@
         line-height: 42px;
     }
 
-    /* h3 {font-size: 20px; line-height: 26px;} */
+    
     h5 {
         font-size: 18px;
         line-height: 22px;
@@ -820,7 +820,7 @@
         outline: none;
     }
 
-    /* Header*/
+    
     .navbar-toggler {
         top: 55%;
         right: 15px;
@@ -986,7 +986,7 @@
         padding: 15px 0;
     }
 
-    /* Back to top button */
+    
     #button {
         width: 55px;
         height: 55px;
@@ -999,13 +999,13 @@
         line-height: 18px;
     }
 
-    /* coming soon */
+    
     .coming-soon-con {
         position: relative;
         padding: 0;
     }
 
-    /* 404 page */
+    
     .error-con h2 i {
         font-size: 100px;
         line-height: 120px;
@@ -1022,16 +1022,16 @@
         margin-bottom: 30px;
     }
 
-    /* coming soon  */
+    
     .coming-soon-con .new-logo {
         width: 200px;
     }
 
-    /* coming soon page */
+    
     .compaign_countdown ul li {
         margin: 0 11px;
         min-height: 100px;
-        /* width: 21%; */
+        
         min-width: 100px;
     }
 
@@ -1065,7 +1065,7 @@
         padding-bottom: 60px;
     }
 
-    /*  */
+    
     .header-contact {
         margin-left: 0;
         position: absolute;
@@ -1098,7 +1098,7 @@
         padding: 0;
     }
 
-    /* contact */
+    
     .sub-banner-con p {
         font-size: 17.5px;
         line-height: 26px;
@@ -1176,7 +1176,7 @@
         height: 350px;
     }
 
-    /*  */
+    
     .about-us-con .col-lg-6.col-md-6.slideInRight {
         padding: 0;
     }
@@ -1349,7 +1349,7 @@
         display: none;
     }
 
-    /* client section */
+    
     .client-logo-con .client-logo-inner {
         display: block !important;
         text-align: center;
@@ -1361,7 +1361,7 @@
         margin-bottom: 30px;
     }
 
-    /* main banner con */
+    
     .banner-con p {
         margin-bottom: 20px;
         padding-right: 9%;
@@ -1431,7 +1431,7 @@
         line-height: 36px;
     }
 
-    /* h3 {font-size: 18px; line-height: 24px;} */
+    
 
     .text-size-18 {
         font-size: 14px;
@@ -1543,14 +1543,14 @@
         right: 6px;
     }
 
-    /* Back to top button */
+    
     #button {
         width: 50px;
         height: 50px;
         right: 15px;
     }
 
-    /* coming soon page  */
+    
     .error-con .generic-btn a {
         padding: 16px 30px;
         font-size: 15px;
@@ -1575,7 +1575,7 @@
         padding: 0;
     }
 
-    /* 404 */
+    
     .error-con p {
         font-size: 16px;
         line-height: 25px;
@@ -1592,7 +1592,7 @@
         min-width: 200px;
     }
 
-    /* coming soon page styling */
+    
     .compaign_countdown ul li {
         margin: 0 8px;
         min-height: auto;
@@ -1705,7 +1705,7 @@
         display: none;
     }
 
-    /* contact */
+    
     .sub-banner-con {
         text-align: center;
     }
@@ -2057,7 +2057,7 @@
         margin-bottom: 16px;
     }
 
-    /* Back to top button */
+    
     #button {
         width: 45px;
         height: 45px;
@@ -2070,7 +2070,7 @@
         line-height: 16px;
     }
 
-    /* 404 page */
+    
     .error-con h2 {
         font-size: 70px;
         line-height: 70px;
@@ -2092,8 +2092,8 @@
         font-size: 14px;
     }
 
-    /* 404 page */
-    /* coming soon page */
+    
+    
     .coming-soon-con h2 {
         font-size: 36px;
         line-height: 36px;
@@ -2448,7 +2448,7 @@
         margin-bottom: 25px;
     }
 
-    /*  */
+    
     .amazing-features-con .col-lg-4.col-md-6 {
         margin: 0 auto 25px;
         width: 100%;

@@ -6,7 +6,6 @@ import AdminSidebar from './components/Admin/AdminSidebar';
 import AdminMain from './components/Admin/AdminMain';
 import Login from './components/Login/Login';
 
-// Bảo vệ route: chưa đăng nhập sẽ bị chuyển về /login
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;

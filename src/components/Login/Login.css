@@ -1,4 +1,4 @@
-/* ===== LAYOUT ===== */
+
 .login-container {
   min-height: 100vh;
   width: 100%;
@@ -23,7 +23,7 @@
   box-shadow: 0 20px 60px rgba(39, 119, 252, 0.15);
 }
 
-/* ===== BRANDING SECTION ===== */
+
 .login-branding {
   background: linear-gradient(135deg, #0a1232 0%, #1a1f4a 100%);
   color: #ffffff;
@@ -57,7 +57,7 @@
   font-weight: 400;
 }
 
-/* Features List */
+
 .login-features {
   display: flex;
   flex-direction: column;
@@ -87,7 +87,7 @@
   color: #aab4cc;
 }
 
-/* ===== FORM SECTION ===== */
+
 .login-form-container {
   padding: 60px 48px;
   display: flex;
@@ -113,7 +113,7 @@
   color: #8892a4;
 }
 
-/* ===== FORM STYLING ===== */
+
 .login-form {
   display: flex;
   flex-direction: column;
@@ -219,7 +219,7 @@
   margin-top: -4px;
 }
 
-/* ===== FORM ROW ===== */
+
 .form-row {
   display: flex;
   justify-content: space-between;
@@ -265,7 +265,7 @@
   text-decoration: underline;
 }
 
-/* ===== BUTTONS ===== */
+
 .login-btn {
   height: 48px;
   background: linear-gradient(135deg, #2777fc 0%, #1e5ac8 100%);
@@ -297,7 +297,7 @@
   cursor: not-allowed;
 }
 
-/* ===== ERROR BANNER ===== */
+
 .login-error-banner {
   display: flex;
   align-items: center;
@@ -317,7 +317,7 @@
   flex-shrink: 0;
 }
 
-/* ===== FOOTER ===== */
+
 .login-footer {
   text-align: center;
   margin-top: 24px;
@@ -342,7 +342,7 @@
   text-decoration: underline;
 }
 
-/* ===== RESPONSIVE ===== */
+
 @media (max-width: 768px) {
   .login-wrapper {
     grid-template-columns: 1fr;
@@ -415,11 +415,11 @@
   }
 
   .form-group input {
-    font-size: 16px; /* iOS font size to prevent zoom */
+    font-size: 16px; 
   }
 }
 
-/* ===== ANIMATIONS ===== */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -431,7 +431,7 @@
   }
 }
 
-/* Scrollbar styling for form sections */
+
 .login-branding::-webkit-scrollbar,
 .login-form-container::-webkit-scrollbar {
   width: 5px;
