@@ -6,7 +6,7 @@ import "./AdminSidebar.css";
 const AdminSidebar = ({ activePage, onNavigate, onLogout, currentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
-  const isAdmin = currentUser?.role === 0;
+  const isAdmin = currentUser?.role === 1;
 
   return (
     <div className={`db-sidebar ${collapsed ? "collapsed" : ""}`}>

@@ -41,6 +41,7 @@ const DashboardLayout = () => {
     <div style={{ display: 'flex', width: '100%', height: '100vh', overflow: 'hidden' }}>
       <AdminSidebar
         activePage={activePage}
+        currentUser={currentUser}
         onNavigate={setActivePage}
         onLogout={handleLogout}
       />
