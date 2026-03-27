@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import "./AdminSidebar.css";
 
-const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
+const AdminSidebar = ({ activePage, onNavigate, onLogout, currentUser }) => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const isAdmin = currentUser?.role === 1;
 
   return (
     <div className={`db-sidebar ${collapsed ? "collapsed" : ""}`}>
@@ -19,14 +20,18 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
           <img src={assets.menu_icon} alt="menu" />
         </div>
 
-        <div className="db-nav-section-label">Tổng quan</div>
-        <button
-          className={`nav-item ${activePage === "overview" ? "active" : ""}`}
-          onClick={() => onNavigate("overview")}
-        >
-          <span className="nav-icon"><i className="fas fa-chart-bar" /></span>
-          <span className="nav-label">Tổng quan</span>
-        </button>
+        {isAdmin && (
+          <>
+            <div className="db-nav-section-label">Tổng quan</div>
+            <button
+              className={`nav-item ${activePage === "overview" ? "active" : ""}`}
+              onClick={() => onNavigate("overview")}
+            >
+              <span className="nav-icon"><i className="fas fa-chart-bar" /></span>
+              <span className="nav-label">Tổng quan</span>
+            </button>
+          </>
+        )}
 
         <div className="db-nav-section-label" style={{ marginTop: 6 }}>Quản lý</div>
         <button
@@ -41,7 +46,7 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout }) => {
           onClick={() => onNavigate("accounts")}
         >
           <span className="nav-icon"><i className="fas fa-users" /></span>
-          <span className="nav-label">Quản lý tài khoản</span>
+          <span className="nav-label">{isAdmin ? "Quản lý tài khoản" : "Tài khoản của tôi"}</span>
         </button>
 
         <div className="db-nav-section-label" style={{ marginTop: 6 }}>Tài liệu</div>

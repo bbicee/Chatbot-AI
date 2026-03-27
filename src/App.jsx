@@ -29,7 +29,9 @@ const ChatbotLayout = () => {
 };
 
 const DashboardLayout = () => {
-  const [activePage, setActivePage] = useState('overview');
+  const currentUser = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } })();
+  const isAdmin = currentUser?.role === 1;
+  const [activePage, setActivePage] = useState(isAdmin ? 'overview' : 'subjects');
   const [showLogout, setShowLogout] = useState(false);
   const navigate = useNavigate();
 

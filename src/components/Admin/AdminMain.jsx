@@ -753,6 +753,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
   const isAdmin = currentUser?.role === 1;
 
   const filtered = users.filter((u) => {
+    if (!isAdmin && u.id !== currentUser?.id) return false;
     const q = filter.toLowerCase();
     return (
       (u.username || "").toLowerCase().includes(q) ||
