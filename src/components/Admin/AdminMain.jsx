@@ -746,7 +746,7 @@ function ChangePasswordModal({ user, onClose, onSave }) {
 
 
 function AccountsPage({ users, setUsers, currentUser, toast }) {
-  const [filter, setFilter] = useState("");
+  const [filter] = useState("");
   const [userModal, setUserModal] = useState(null);
   const [changePwModal, setChangePwModal] = useState(null);
   const [confirm, setConfirm] = useState(null);
@@ -859,10 +859,6 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
           </p>
         </div>
         <div className="db-section-header-actions">
-          <div className="db-search-bar">
-            <span className="db-search-icon"><i className="fas fa-search" /></span>
-            <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Tìm tài khoản..." />
-          </div>
           {isAdmin && (
             <button className="db-btn db-btn-primary" onClick={() => setUserModal({ editing: null })}>
               ＋ Thêm tài khoản
