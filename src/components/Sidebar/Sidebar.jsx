@@ -85,14 +85,6 @@ const Sidebar = () => {
           <span className="nav-emoji"><i className="fas fa-home" /></span>
           <span className="nav-label">Trang chủ</span>
         </div>
-        <div className="nav-item">
-          <img src={assets.question_icon} alt="help" />
-          <span className="nav-label">Trợ giúp</span>
-        </div>
-        <div className="nav-item">
-          <img src={assets.setting_icon} alt="settings" />
-          <span className="nav-label">Cài đặt</span>
-        </div>
       </div>
     </div>
   );
