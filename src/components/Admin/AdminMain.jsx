@@ -746,7 +746,7 @@ function ChangePasswordModal({ user, onClose, onSave }) {
 
 
 function AccountsPage({ users, setUsers, currentUser, toast }) {
-  const [filter] = useState("");
+  const [filter, setFilter] = useState("");
   const [userModal, setUserModal] = useState(null);
   const [changePwModal, setChangePwModal] = useState(null);
   const [confirm, setConfirm] = useState(null);
@@ -851,7 +851,7 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
     <div className="db-page-body">
       <div className="db-section-header">
         <div>
-          <h2>Quản lý tài khoản</h2>
+          <h2>{isAdmin ? "Quản lý tài khoản" : "Hồ sơ cá nhân"}</h2>
           <p>
             {isAdmin
               ? "Xem và quản lý toàn bộ tài khoản trong hệ thống"
@@ -859,6 +859,12 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
           </p>
         </div>
         <div className="db-section-header-actions">
+           {isAdmin && (
+            <div className="db-search-bar">
+              <span className="db-search-icon"><i className="fas fa-search" /></span>
+              <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Tìm tài khoản..." />
+            </div>
+          )}
           {isAdmin && (
             <button className="db-btn db-btn-primary" onClick={() => setUserModal({ editing: null })}>
               ＋ Thêm tài khoản
@@ -869,8 +875,10 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
 
       <div className="db-card">
         <div className="db-card-header">
-          <div className="db-card-title"><i className="fas fa-list" /> Danh sách tài khoản</div>
-          <span style={{ fontSize: 12, color: "#8892a4" }}>{users.length} tài khoản</span>
+          <div className="db-card-title"><i className="fas fa-list" /> {isAdmin ? "Danh sách tài khoản" : "Tài khoản của tôi"}</div>
+          {isAdmin && (
+            <span style={{ fontSize: 12, color: "#8892a4" }}>{users.length} tài khoản</span>
+          )}
         </div>
         <div className="db-table-wrap">
           <table className="db-table">
@@ -1131,20 +1139,26 @@ function DocumentsPage({ subjects }) {
 const PAGE_TITLES = {
   overview: "Tổng quan",
   subjects: "Quản lý môn học",
-  accounts: "Quản lý tài khoản",
   documents: "Tài liệu học tập",
 };
 
 function Topbar({ activePage, currentUser }) {
   const navigate = useNavigate();
+  const isAdmin = currentUser?.role === 1;
   const displayName = currentUser?.name || currentUser?.username || "Giáo viên";
   const roleLabel = currentUser?.role === 1 ? "Quản trị viên" : "Giáo viên";
+
+  const getPageTitle = () => {
+    if (activePage === "accounts") return isAdmin ? "Quản lý tài khoản" : "Tài khoản của tôi";
+    return PAGE_TITLES[activePage] || activePage;
+  };
+
   return (
     <header className="db-topbar">
       <div className="db-topbar-left">
         <div className="db-topbar-title">
           <span className="brand-dot" />
-          {PAGE_TITLES[activePage] || activePage}
+          {getPageTitle()}
         </div>
       </div>
       <div className="db-topbar-right">
