@@ -745,7 +745,7 @@ function ChangePasswordModal({ user, onClose, onSave }) {
 }
 
 
-function AccountsPage({ users, setUsers, currentUser, toast }) {
+function AccountsPage({ users, setUsers, currentUser, setCurrentUser, toast }) {
   const [filter, setFilter] = useState("");
   const [userModal, setUserModal] = useState(null);
   const [changePwModal, setChangePwModal] = useState(null);
@@ -791,6 +791,11 @@ function AccountsPage({ users, setUsers, currentUser, toast }) {
           setUsers((prev) =>
             prev.map((u) => u.id === id ? { ...u, name: name.trim(), ...(isAdmin ? { role } : {}) } : u)
           );
+          if (id === currentUser?.id) {
+            const updated = { ...currentUser, name: name.trim(), ...(isAdmin ? { role } : {}) };
+            localStorage.setItem("user", JSON.stringify(updated));
+            setCurrentUser(updated);
+          }
           toast("Cập nhật tài khoản thành công!");
         } else {
           toast(res.message || "Cập nhật thất bại!", "error"); return;
@@ -1180,9 +1185,9 @@ function Topbar({ activePage, currentUser }) {
 
 // eslint-disable-next-line no-unused-vars
 const DashboardMain = ({ activePage, onLogout }) => {
-  const currentUser = (() => {
+  const [currentUser, setCurrentUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
-  })();
+  });
   const [subjects, setSubjects] = useState([]);
   const [users, setUsers] = useState([]);
   const { toasts, show: showToast, remove: removeToast } = useToast();
@@ -1231,7 +1236,7 @@ const DashboardMain = ({ activePage, onLogout }) => {
       case "subjects":
         return <SubjectsPage subjects={subjects} loadData={loadData} toast={showToast} />;
       case "accounts":
-        return <AccountsPage users={users} setUsers={setUsers} currentUser={currentUser} toast={showToast} />;
+        return <AccountsPage users={users} setUsers={setUsers} currentUser={currentUser} setCurrentUser={setCurrentUser} toast={showToast} />;
       case "documents":
         return <DocumentsPage subjects={subjects} />;
       default:
