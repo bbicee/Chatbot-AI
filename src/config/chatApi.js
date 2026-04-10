@@ -46,11 +46,11 @@ export async function getMessages(conversationId) {
   return res.json();
 }
 
-export async function updateConversationTitle(conversationId, title) {
+export async function updateConversationTitle(conversationId, title, anonymousUserId) {
   const res = await fetch(`${apiUrl}/conversations/${conversationId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title }),
+    body: JSON.stringify({ title, anonymous_user_id: anonymousUserId }),
   });
   if (!res.ok) throw new Error(`updateConversationTitle: ${res.status}`);
   return res.json();
@@ -118,6 +118,54 @@ export async function* streamQuiz(conversationId, message, signal) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ conversationId, message }),
+    signal,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  yield* readSSEStream(res.body, signal);
+}
+
+// ── File-scoped API ──────────────────────────────────────────────────────────
+
+export async function listFileConversations(fileId, anonymousUserId, type = 'chat') {
+  const params = new URLSearchParams({ type });
+  if (anonymousUserId) params.set('anonymous_user_id', anonymousUserId);
+  const res = await fetch(`${apiUrl}/conversations/file/${fileId}?${params}`);
+  if (!res.ok) throw new Error(`listFileConversations: ${res.status}`);
+  return res.json();
+}
+
+export async function createFileConversation(fileId, anonymousUserId, type = 'chat') {
+  const res = await fetch(`${apiUrl}/conversations/file/${fileId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ anonymous_user_id: anonymousUserId, type }),
+  });
+  if (!res.ok) throw new Error(`createFileConversation: ${res.status}`);
+  return res.json();
+}
+
+export async function* streamFileChat(conversationId, fileId, message, signal) {
+  const res = await fetch(`${apiUrl}/chat/file`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conversationId, fileId, message }),
+    signal,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  yield* readSSEStream(res.body, signal);
+}
+
+export async function* streamFileQuiz(conversationId, fileId, message, signal) {
+  const res = await fetch(`${apiUrl}/chat/file/quiz`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conversationId, fileId, message }),
     signal,
   });
   if (!res.ok) {
