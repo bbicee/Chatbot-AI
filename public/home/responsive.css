@@ -2169,9 +2169,22 @@
         padding: 9px;
         height: 40px;
         text-align: center;
-        min-width: 100px;
+        min-width: 42px;
         line-height: unset;
         font-size: 15px;
+    }
+
+    .contact-btn-text {
+        display: none;
+    }
+
+    .contact-btn-icon {
+        display: inline-block;
+        font-size: 18px;
+    }
+
+    .banner-title-space {
+        display: block;
     }
 
     .heading-title-con h2 br {
@@ -2487,6 +2500,7 @@
 
     .header-contact {
         right: 35px;
+        margin-right: 14px;
     }
 
     .testimonials-con .owl-theme .owl-dots .owl-dot span {
