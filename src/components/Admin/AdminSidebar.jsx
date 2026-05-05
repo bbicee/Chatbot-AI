@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import "./AdminSidebar.css";
 
-const AdminSidebar = ({ activePage, onNavigate, onLogout, currentUser }) => {
+const AdminSidebar = ({ activePage, onNavigate, onLogout, currentUser, mobileOpen, onMobileClose }) => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const isAdmin = currentUser?.role === 1;
 
   return (
-    <div className={`db-sidebar ${collapsed ? "collapsed" : ""}`}>
+    <>
+      {mobileOpen && <div className="db-sidebar-backdrop" onClick={onMobileClose} />}
+      <div className={`db-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">AI</div>
         <span className="sidebar-logo-text">EduBot Admin</span>
@@ -70,6 +72,7 @@ const AdminSidebar = ({ activePage, onNavigate, onLogout, currentUser }) => {
         </button>
       </div>
     </div>
+    </>
   );
 };
 

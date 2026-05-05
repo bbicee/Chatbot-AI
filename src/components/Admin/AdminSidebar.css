@@ -234,20 +234,39 @@
 }
 
 
+.db-sidebar-backdrop {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .db-sidebar {
     position: fixed;
     left: 0;
     top: 0;
-    z-index: 100;
+    z-index: 201;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
+    height: 100vh;
   }
   .db-sidebar.mobile-open {
     transform: translateX(0);
   }
+  .db-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 18, 50, 0.35);
+    z-index: 200;
+    backdrop-filter: blur(2px);
+  }
 }
 
+@media (max-width: 600px) {
+  .db-sidebar {
+    width: 240px;
+    min-width: 240px;
+  }
+}
 
 /* ===== FA Icon Colors ===== */
 .db-sidebar .nav-icon .fa-chart-bar  { color: #2777fc; }
@@ -256,9 +275,3 @@
 .db-sidebar .nav-icon .fa-folder     { color: #f59e0b; }
 .db-sidebar .nav-icon .fa-robot      { color: #2777fc; }
 .db-logout-btn .nav-icon i           { color: #e53935; }
-
-@media (max-width: 600px) {
-  .db-sidebar {
-    display: none;
-  }
-}

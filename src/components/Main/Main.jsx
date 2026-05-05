@@ -147,6 +147,7 @@ function FileChatPanel({ file, mode, onClose }) {
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
   const [initializing, setInitializing] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const messagesRef = useRef(null);
   const abortRef = useRef(null);
   const anonIdRef = useRef(getOrCreateAnonymousUserId());
@@ -208,6 +209,7 @@ function FileChatPanel({ file, mode, onClose }) {
     setMessages([]);
     setStreamingText('');
     setInput('');
+    setHistoryOpen(false);
   };
 
   const handleDeleteConversation = async (e, convId) => {
@@ -288,6 +290,13 @@ function FileChatPanel({ file, mode, onClose }) {
       {/* Header */}
       <div className="file-chat-header">
         <div className="file-chat-header-left">
+          <button
+            className={`file-chat-history-toggle ${mode === 'quiz' ? 'quiz' : ''} ${historyOpen ? 'open' : ''}`}
+            onClick={() => setHistoryOpen((p) => !p)}
+            title={historyOpen ? 'Ẩn lịch sử' : 'Xem lịch sử'}
+          >
+            <i className="fas fa-history" />
+          </button>
           <span className={`file-chat-mode-badge ${mode === 'quiz' ? 'quiz' : 'chat'}`}>
             {mode === 'quiz' ? <><i className="fas fa-bullseye" /> Trắc nghiệm</> : <><i className="fas fa-comment" /> Chat AI</>}
           </span>
@@ -298,7 +307,7 @@ function FileChatPanel({ file, mode, onClose }) {
 
       <div className="file-chat-body">
         {/* History sidebar */}
-        <div className="file-chat-history">
+        <div className={`file-chat-history ${historyOpen ? 'history-open' : ''}`}>
           <button className={`file-chat-new-btn ${mode === 'quiz' ? 'quiz' : ''}`} onClick={handleNewConversation}>
             <i className="fas fa-plus" /> Mới
           </button>
@@ -311,7 +320,7 @@ function FileChatPanel({ file, mode, onClose }) {
               <div
                 key={conv.id}
                 className={`file-chat-history-item ${conv.id === activeConvId ? 'active' : ''} ${mode === 'quiz' ? 'quiz' : ''}`}
-                onClick={() => loadConversation(conv.id)}
+                onClick={() => { loadConversation(conv.id); setHistoryOpen(false); }}
                 title={conv.title}
               >
                 <span className="file-chat-history-icon">
@@ -376,12 +385,14 @@ function FileChatPanel({ file, mode, onClose }) {
 }
 
 function DocumentsView() {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile]   = useState(null);
   const [activeSideMode, setActiveSideMode] = useState(null); // 'chat' | 'quiz' | null
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [openSubjects, setOpenSubjects] = useState(new Set());
-  const [openChapters, setOpenChapters] = useState(new Set());
+  const [subjects, setSubjects]           = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [openSubjects, setOpenSubjects]   = useState(new Set());
+  const [openChapters, setOpenChapters]   = useState(new Set());
+  // mobile screen: 'tree' | 'viewer' | 'chat'
+  const [mobileScreen, setMobileScreen]   = useState('tree');
 
   useEffect(() => {
     async function fetchData() {
@@ -395,10 +406,7 @@ function DocumentsView() {
           ...s,
           chapters: chaptersData
             .filter((c) => c.subject_id === s.id)
-            .map((c) => ({
-              ...c,
-              files: filesData.filter((f) => f.chapter_id === c.id),
-            })),
+            .map((c) => ({ ...c, files: filesData.filter((f) => f.chapter_id === c.id) })),
         }));
         setSubjects(nested);
         setOpenSubjects(new Set(subjectsData.map((s) => s.id)));
@@ -415,29 +423,54 @@ function DocumentsView() {
   const toggleChapter = (id) =>
     setOpenChapters((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
+  const handleSelectFile = (file) => {
+    setSelectedFile(file);
+    setActiveSideMode(null);
+    setMobileScreen('viewer');
+  };
+
+  const handleCloseFile = () => {
+    setSelectedFile(null);
+    setActiveSideMode(null);
+    setMobileScreen('tree');
+  };
+
+  const handleToggleMode = (mode) => {
+    const next = activeSideMode === mode ? null : mode;
+    setActiveSideMode(next);
+    if (next) setMobileScreen('chat');
+    else      setMobileScreen('viewer');
+  };
+
   const totalFiles = subjects.reduce((a, s) => a + s.chapters.reduce((b, c) => b + c.files.length, 0), 0);
 
+  const fileLabel = selectedFile
+    ? (selectedFile.file_name?.length > 28
+        ? selectedFile.file_name.slice(0, 28) + '…'
+        : selectedFile.file_name)
+    : '';
+
   return (
-    <div className="docs-view">
-      <div className="docs-sidebar">
-        <div className="docs-sidebar-heading">
+    <div className={`docs-view mobile-${mobileScreen}`}>
+
+      {/* ── LEFT: file tree ── */}
+      <div className="docs-tree-panel">
+        <div className="docs-tree-heading">
           <span><i className="fas fa-book-open" /> Tài liệu học tập</span>
           {!loading && <span className="docs-count">{totalFiles} tài liệu</span>}
         </div>
 
         {loading && <p className="docs-hint">Đang tải...</p>}
-        {!loading && subjects.length === 0 && (
-          <p className="docs-hint">Chưa có tài liệu nào.</p>
-        )}
+        {!loading && subjects.length === 0 && <p className="docs-hint">Chưa có tài liệu nào.</p>}
 
         {subjects.map((subject) => (
           <div key={subject.id}>
             <div
-              className={`docs-subject-header ${openSubjects.has(subject.id) ? "open" : ""}`}
+              className={`docs-subject-header ${openSubjects.has(subject.id) ? 'open' : ''}`}
               onClick={() => toggleSubject(subject.id)}
             >
-              <span className="docs-arrow">{openSubjects.has(subject.id) ? "▾" : "▸"}</span>
-              <span><i className="fas fa-book" /></span>
+              <span className="docs-arrow">{openSubjects.has(subject.id) ? '▾' : '▸'}</span>
+              <i className="fas fa-book" />
               <span className="docs-label">{subject.name}</span>
               <span className="docs-badge">{subject.chapters.reduce((a, c) => a + c.files.length, 0)}</span>
             </div>
@@ -445,11 +478,11 @@ function DocumentsView() {
             {openSubjects.has(subject.id) && subject.chapters.map((chapter) => (
               <div key={chapter.id}>
                 <div
-                  className={`docs-chapter-header ${openChapters.has(chapter.id) ? "open" : ""}`}
+                  className={`docs-chapter-header ${openChapters.has(chapter.id) ? 'open' : ''}`}
                   onClick={() => toggleChapter(chapter.id)}
                 >
-                  <span className="docs-arrow">{openChapters.has(chapter.id) ? "▾" : "▸"}</span>
-                  <span><i className="fas fa-folder-open" /></span>
+                  <span className="docs-arrow">{openChapters.has(chapter.id) ? '▾' : '▸'}</span>
+                  <i className="fas fa-folder-open" />
                   <span className="docs-label">{chapter.name}</span>
                   <span className="docs-badge">{chapter.files.length}</span>
                 </div>
@@ -457,12 +490,16 @@ function DocumentsView() {
                 {openChapters.has(chapter.id) && chapter.files.map((file) => (
                   <div
                     key={file.id}
-                    className={`doc-item ${selectedFile?.id === file.id ? "doc-item-active" : ""}`}
-                    onClick={() => { setSelectedFile(file); setActiveSideMode(null); }}
+                    className={`doc-item ${selectedFile?.id === file.id ? 'doc-item-active' : ''}`}
+                    onClick={() => handleSelectFile(file)}
                   >
-                    <span><i className="fas fa-file" /></span>
+                    <i className="fas fa-file" />
                     <span className="docs-file-name">
-                      {file.file_name?.includes('.') ? file.file_name : `${file.file_name}.${(file.file_type || '').split('/').pop().replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx').toLowerCase()}`}
+                      {file.file_name?.includes('.')
+                        ? file.file_name
+                        : `${file.file_name}.${(file.file_type || '').split('/').pop()
+                            .replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx')
+                            .toLowerCase()}`}
                     </span>
                   </div>
                 ))}
@@ -472,75 +509,110 @@ function DocumentsView() {
         ))}
       </div>
 
-      <div className={`docs-main ${activeSideMode ? "with-panel" : ""}`}>
+      {/* ── RIGHT: viewer + optional chat panel ── */}
+      <div className={`docs-main ${activeSideMode ? 'with-panel' : ''}`}>
+
+        {/* viewer */}
         <div className="docs-content">
-        {selectedFile ? (
-          <>
-            <div className="docs-header">
-              <span><i className="fas fa-file" /> {selectedFile.file_name}</span>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <button
-                  className={`file-ai-btn ${activeSideMode === 'chat' ? 'active' : ''}`}
-                  onClick={() => setActiveSideMode(activeSideMode === 'chat' ? null : 'chat')}
-                >
-                  <i className="fas fa-comment" /> Chat AI
+          {selectedFile ? (
+            <>
+              {/* toolbar */}
+              <div className="docs-toolbar">
+                <button className="docs-back-btn" onClick={handleCloseFile} title="Quay lại">
+                  <i className="fas fa-arrow-left" />
                 </button>
-                <button
-                  className={`file-ai-btn quiz ${activeSideMode === 'quiz' ? 'active' : ''}`}
-                  onClick={() => setActiveSideMode(activeSideMode === 'quiz' ? null : 'quiz')}
-                >
-                  <i className="fas fa-bullseye" style={{ color: '#e65100' }}/> Trắc nghiệm
-                </button>
-                <a
-                  href={selectedFile.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="docs-open-btn"
-                >
-                  Mở tab mới
-                </a>
-                <button className="close-btn" onClick={() => { setSelectedFile(null); setActiveSideMode(null); }}>Đóng</button>
+                <span className="docs-toolbar-name">{fileLabel}</span>
+                <div className="docs-toolbar-actions">
+                  <button
+                    className={`dtb-btn ${activeSideMode === 'chat' ? 'dtb-chat active' : 'dtb-chat'}`}
+                    onClick={() => handleToggleMode('chat')}
+                    title="Chat AI"
+                  >
+                    <i className="fas fa-comment" /><span className="dtb-label"> Chat AI</span>
+                  </button>
+                  <button
+                    className={`dtb-btn ${activeSideMode === 'quiz' ? 'dtb-quiz active' : 'dtb-quiz'}`}
+                    onClick={() => handleToggleMode('quiz')}
+                    title="Trắc nghiệm"
+                  >
+                    <i className="fas fa-bullseye" /><span className="dtb-label"> Trắc nghiệm</span>
+                  </button>
+                  <a
+                    href={selectedFile.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="dtb-btn dtb-open"
+                    title="Mở tab mới"
+                  >
+                    <i className="fas fa-external-link-alt" /><span className="dtb-label"> Mở tab</span>
+                  </a>
+                </div>
+              </div>
+
+              <iframe
+                src={
+                  selectedFile.file_type === 'docx'
+                    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedFile.file_url)}`
+                    : selectedFile.file_url
+                }
+                title={selectedFile.file_name}
+                className="pdf-frame"
+              />
+            </>
+          ) : (
+            <div className="docs-empty">
+              <div className="docs-empty-inner">
+                <div className="docs-empty-icon"><i className="fas fa-book-open" /></div>
+                <p>Chọn một tài liệu để xem</p>
+                <span>Mở rộng môn học và chương từ danh sách bên trái, sau đó nhấn vào tài liệu để xem nội dung.</span>
               </div>
             </div>
-            <iframe
-              src={
-                selectedFile.file_type === "docx"
-                  ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedFile.file_url)}`
-                  : selectedFile.file_url
-              }
-              title={selectedFile.file_name}
-              className="pdf-frame"
-            />
-          </>
-        ) : (
-          <div className="docs-empty">
-            <div className="docs-empty-inner">
-              <div className="docs-empty-icon"><i className="fas fa-book-open" /></div>
-              <p>Chọn một tài liệu để xem</p>
-              <span>Mở rộng môn học và chương từ danh sách bên trái, sau đó nhấn vào tài liệu để xem nội dung.</span>
-              <span style={{ display: 'block', marginTop: 10, color: '#2777fc', fontSize: 12 }}>
-                <i className="fas fa-comment" /> Chat AI &amp; <i className="fas fa-bullseye" /> Trắc nghiệm sẽ xuất hiện khi bạn chọn tài liệu.
-              </span>
-            </div>
-          </div>
-        )}
+          )}
         </div>
 
+        {/* chat/quiz panel */}
         {selectedFile && activeSideMode && (
           <FileChatPanel
             file={selectedFile}
             mode={activeSideMode}
-            onClose={() => setActiveSideMode(null)}
+            onClose={() => { setActiveSideMode(null); setMobileScreen('viewer'); }}
           />
         )}
       </div>
+
+      {/* ── MOBILE bottom bar (only when file open) ── */}
+      {selectedFile && (
+        <div className="docs-mobile-bar">
+          <button className="dmb-btn" onClick={handleCloseFile}>
+            <i className="fas fa-list" /><span>Danh sách</span>
+          </button>
+          <button
+            className={`dmb-btn ${mobileScreen === 'viewer' && !activeSideMode ? 'dmb-active' : ''}`}
+            onClick={() => { setActiveSideMode(null); setMobileScreen('viewer'); }}
+          >
+            <i className="fas fa-file-alt" /><span>Tài liệu</span>
+          </button>
+          <button
+            className={`dmb-btn ${activeSideMode === 'chat' ? 'dmb-active' : ''}`}
+            onClick={() => handleToggleMode('chat')}
+          >
+            <i className="fas fa-comment" /><span>Chat AI</span>
+          </button>
+          <button
+            className={`dmb-btn ${activeSideMode === 'quiz' ? 'dmb-active dmb-quiz' : ''}`}
+            onClick={() => handleToggleMode('quiz')}
+          >
+            <i className="fas fa-bullseye" /><span>Trắc nghiệm</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
 
 
-const Main = () => {
+const Main = ({ onToggleSidebar }) => {
   const { onSent, onGenerateQuiz, setInput, input, messages, streamingText, loading, stopChat, isQuizMode } = useContext(Context);
   const messagesRef = useRef(null);
   const location = useLocation();
@@ -572,12 +644,17 @@ const Main = () => {
   return (
     <div className="main">
       <div className="topbar">
-        <span className="topbar-title">
-          {isDocsMode ? <><i className="fas fa-book" /> Tài liệu học tập</> : <><span className="brand-dot" />HCA Chatbot</>}
-        </span>
+        <div className="topbar-left">
+          <button className="topbar-hamburger" onClick={onToggleSidebar} aria-label="Menu">
+            <i className="fas fa-bars" />
+          </button>
+          <span className="topbar-title">
+            {isDocsMode ? <><i className="fas fa-book" /> <span className="topbar-title-text">Tài liệu học tập</span></> : <><span className="brand-dot" /><span className="topbar-title-text">HCA Chatbot</span></>}
+          </span>
+        </div>
         <div className="topbar-right">
-          <a href="/admin" className="topbar-admin-btn"><i className="fas fa-user-cog" /> Quản lý</a>
-          <a href="/home.html" className="topbar-back-btn">Trang chủ</a>
+          <a href="/admin" className="topbar-admin-btn"><i className="fas fa-user-cog" /><span className="topbar-btn-label"> Quản lý</span></a>
+          <a href="/home.html" className="topbar-back-btn"><i className="fas fa-home" /><span className="topbar-btn-label"> Trang chủ</span></a>
           <img src={assets.user_icon} alt="user" className="avatar" />
         </div>
       </div>

@@ -886,7 +886,7 @@ function AccountsPage({ users, setUsers, currentUser, setCurrentUser, toast }) {
           )}
         </div>
         <div className="db-table-wrap">
-          <table className="db-table">
+          <table className="db-table db-user-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -1031,6 +1031,7 @@ function DocumentsPage({ subjects }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [openSubjects, setOpenSubjects] = useState(() => new Set(subjects.map((s) => s.id)));
   const [openChapters, setOpenChapters] = useState(new Set());
+  const [mobileView, setMobileView] = useState('tree'); // 'tree' | 'viewer'
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -1043,10 +1044,15 @@ function DocumentsPage({ subjects }) {
   const toggleChapter = (id) =>
     setOpenChapters((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
+  const handleSelectFile = (file) => {
+    setSelectedFile(file);
+    setMobileView('viewer');
+  };
+
   const totalFiles = subjects.reduce((a, s) => a + s.chapters.reduce((b, c) => b + c.files.length, 0), 0);
 
   return (
-    <div className="db-docs-layout">
+    <div className={`db-docs-layout db-docs-mobile-${mobileView}`}>
       <div className="db-docs-sidebar">
         <div className="db-docs-sidebar-heading">
           <span><i className="fas fa-book-open" /> Tài liệu học tập</span>
@@ -1085,7 +1091,7 @@ function DocumentsPage({ subjects }) {
                   <div
                     key={file.id}
                     className={`db-docs-file-item ${selectedFile?.id === file.id ? "active" : ""}`}
-                    onClick={() => setSelectedFile(file)}
+                    onClick={() => handleSelectFile(file)}
                   >
                     <span><i className="fas fa-file" /></span>
                     <span className="db-docs-file-name">{getDisplayName(file.file_name, file.file_type)}</span>
@@ -1101,17 +1107,19 @@ function DocumentsPage({ subjects }) {
         {selectedFile ? (
           <>
             <div className="db-docs-header">
-              <span><i className="fas fa-file" /> {selectedFile.file_name}</span>
-              <div style={{ display: "flex", gap: 8 }}>
-                <a
-                  href={selectedFile.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="db-docs-open-btn"
-                >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+                <button className="db-docs-back-btn" onClick={() => setMobileView('tree')} title="Quay lại">
+                  <i className="fas fa-arrow-left" />
+                </button>
+                <span style={{ fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <i className="fas fa-file" style={{ marginRight: 6 }} />{selectedFile.file_name}
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <a href={selectedFile.file_url} target="_blank" rel="noreferrer" className="db-docs-open-btn">
                   Mở tab mới
                 </a>
-                <button className="db-docs-close-btn" onClick={() => setSelectedFile(null)}>
+                <button className="db-docs-close-btn" onClick={() => { setSelectedFile(null); setMobileView('tree'); }}>
                   Đóng
                 </button>
               </div>
@@ -1147,7 +1155,7 @@ const PAGE_TITLES = {
   documents: "Tài liệu học tập",
 };
 
-function Topbar({ activePage, currentUser }) {
+function Topbar({ activePage, currentUser, onToggleSidebar }) {
   const navigate = useNavigate();
   const isAdmin = currentUser?.role === 1;
   const displayName = currentUser?.name || currentUser?.username || "Giáo viên";
@@ -1161,6 +1169,9 @@ function Topbar({ activePage, currentUser }) {
   return (
     <header className="db-topbar">
       <div className="db-topbar-left">
+        <button className="db-topbar-hamburger" onClick={onToggleSidebar} aria-label="Menu">
+          <i className="fas fa-bars" />
+        </button>
         <div className="db-topbar-title">
           <span className="brand-dot" />
           {getPageTitle()}
@@ -1168,7 +1179,7 @@ function Topbar({ activePage, currentUser }) {
       </div>
       <div className="db-topbar-right">
         <button className="db-topbar-chatbot-link" onClick={() => navigate("/chatbot")}>
-          <i className="fas fa-robot" /> Chatbot
+          <i className="fas fa-robot" /><span className="db-topbar-btn-label"> Chatbot</span>
         </button>
         <div className="db-topbar-user-info">
           <div className="db-topbar-user-name">{displayName}</div>
@@ -1184,7 +1195,7 @@ function Topbar({ activePage, currentUser }) {
 
 
 // eslint-disable-next-line no-unused-vars
-const DashboardMain = ({ activePage, onLogout }) => {
+const DashboardMain = ({ activePage, onLogout, onToggleSidebar }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
   });
@@ -1246,7 +1257,7 @@ const DashboardMain = ({ activePage, onLogout }) => {
 
   return (
     <div className="db-main">
-      <Topbar activePage={activePage} currentUser={currentUser} />
+      <Topbar activePage={activePage} currentUser={currentUser} onToggleSidebar={onToggleSidebar} />
       {renderPage()}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>

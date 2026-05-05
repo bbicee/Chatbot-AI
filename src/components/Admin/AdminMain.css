@@ -29,6 +29,23 @@
   gap: 10px;
 }
 
+.db-topbar-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  color: #5f6b84;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.db-topbar-hamburger:hover { background: #f2f7ff; }
+
 .db-topbar-title {
   font-size: 17px;
   font-weight: 700;
@@ -1135,13 +1152,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 22px;
+  gap: 8px;
+  padding: 10px 16px;
   border-bottom: 1px solid #e4eaf5;
   background: #ffffff;
   color: #1a1a2e;
   font-size: 15px;
   font-weight: 600;
+  flex-shrink: 0;
 }
+
+.db-docs-back-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  background: #f2f7ff;
+  border-radius: 7px;
+  color: #2777fc;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.db-docs-back-btn:hover { background: #e0ecff; }
 
 .db-docs-open-btn {
   padding: 6px 14px;
@@ -1221,13 +1257,98 @@
   }
 }
 
-@media (max-width: 600px) {
-  .db-page-body { padding: 16px; }
-  .db-stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .db-section-header { flex-direction: column; align-items: flex-start; }
-  .db-ai-banner { flex-direction: column; gap: 12px; }
+@media (max-width: 768px) {
+  /* Hamburger appears, user-info hidden */
+  .db-topbar-hamburger { display: flex; }
+  .db-topbar-user-info { display: none; }
   .db-topbar { padding: 0 16px; }
-  .db-modal { padding: 20px; }
+
+  /* Tables: horizontal scroll */
+  .db-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .db-table { min-width: 520px; }
+
+  /* Account table → card layout on mobile */
+  .db-table.db-user-table { min-width: unset; }
+  .db-table.db-user-table thead { display: none; }
+  .db-table.db-user-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e4eaf5;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(39,119,252,0.05);
+    position: relative;
+  }
+  .db-table.db-user-table tbody tr:hover { background: #f8faff; }
+  .db-table.db-user-table td {
+    padding: 3px 0;
+    border: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .db-table.db-user-table td:first-child {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 11px;
+    color: #c0cce0;
+  }
+  .db-table.db-user-table .db-td-actions {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f4ff;
+  }
+
+  /* Docs panel stacks vertically */
+  /* Docs panel: mobile tree/viewer states */
+  .db-docs-panel { flex-direction: column; }
+  .db-docs-layout .db-docs-sidebar { width: 100%; min-width: 100%; border-right: none; border-bottom: 1px solid #e4eaf5; }
+  .db-docs-layout .db-docs-content { flex: 1; }
+  /* tree state: show sidebar, hide content */
+  .db-docs-layout.db-docs-mobile-tree .db-docs-content { display: none; }
+  /* viewer state: hide sidebar, show content full height */
+  .db-docs-layout.db-docs-mobile-viewer .db-docs-sidebar { display: none; }
+  .db-docs-layout.db-docs-mobile-viewer .db-docs-content { display: flex; }
+  /* back button visible on mobile */
+  .db-docs-back-btn { display: flex; }
+
+  /* Subject list: chapter indent less on mobile */
+  .db-chapter-list { padding-left: 14px; }
+
+  /* Chapter item: stack info + actions vertically */
+  .db-chapter-item { flex-wrap: wrap; gap: 8px; }
+  .db-chapter-actions {
+    width: 100%;
+    flex-shrink: 0;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-top: 4px;
+    border-top: 1px solid #eef1f8;
+  }
+
+  /* File item: file name wraps, actions stay right */
+  .db-file-item { flex-wrap: wrap; gap: 6px; }
+  .db-file-name { white-space: normal; word-break: break-word; }
+
+  /* Subject header actions always visible */
+  .db-subject-actions { gap: 4px; }
+}
+
+@media (max-width: 600px) {
+  .db-page-body { padding: 14px; }
+  .db-stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .db-section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .db-ai-banner { flex-direction: column; gap: 12px; }
+  .db-modal { padding: 20px; width: 95%; }
+  .db-topbar-btn-label { display: none; }
+  .db-topbar-chatbot-link { padding: 7px 10px; }
+  .db-stat-card { padding: 14px 12px; gap: 10px; }
+  .db-stat-value { font-size: 22px; }
+  .db-card-header { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
 .db-stat-icon.blue i   { color: #2777fc; }

@@ -4,7 +4,7 @@ import { assets } from "../../assets/assets";
 import { Context } from "../../context/ContextDef";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen, onMobileClose }) => {
   const [collapsed, setCollapsed] = useState(false);
   const { conversations, newChat, newQuizChat, loadConversation, deleteConversation, activeConvId } = useContext(Context);
   const navigate = useNavigate();
@@ -16,24 +16,29 @@ const Sidebar = () => {
   const handleNewChat = () => {
     newChat();
     navigate("/chatbot", { replace: true });
+    onMobileClose();
   };
 
   const handleNewQuizChat = () => {
     newQuizChat();
     navigate("/chatbot", { replace: true });
+    onMobileClose();
   };
 
   const handleLoadPrompt = (conv) => {
     loadConversation(conv);
     navigate("/chatbot", { replace: true });
+    onMobileClose();
   };
 
   return (
-    <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">AI</div>
-        <span className="sidebar-logo-text">HCA Chatbot</span>
-      </div>
+    <>
+      {mobileOpen && <div className="sidebar-backdrop" onClick={onMobileClose} />}
+      <div className={`sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}>
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">AI</div>
+          <span className="sidebar-logo-text">HCA Chatbot</span>
+        </div>
 
       <div className="sidebar-top">
         <div className="menu-btn" onClick={() => setCollapsed((p) => !p)}>
@@ -50,7 +55,7 @@ const Sidebar = () => {
           <span className="nav-label">Tạo trắc nghiệm mới</span>
         </div>
 
-        <div className={`nav-item ${isDocsMode ? "active" : ""}`} onClick={() => navigate("/documents")}>
+        <div className={`nav-item ${isDocsMode ? "active" : ""}`} onClick={() => { navigate("/documents"); onMobileClose(); }}>
           <span className="nav-emoji"><i className="fas fa-folder" /></span>
           <span className="nav-label">Tài liệu học tập</span>
         </div>
@@ -87,6 +92,7 @@ const Sidebar = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

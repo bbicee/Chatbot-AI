@@ -20,10 +20,11 @@ const RedirectToStaticHome = () => {
 };
 
 const ChatbotLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div style={{ display: 'flex', width: '100%', height: '100vh', overflow: 'hidden' }}>
-      <Sidebar />
-      <Main />
+      <Sidebar mobileOpen={sidebarOpen} onMobileClose={() => setSidebarOpen(false)} />
+      <Main onToggleSidebar={() => setSidebarOpen((p) => !p)} />
     </div>
   );
 };
@@ -33,6 +34,7 @@ const DashboardLayout = () => {
   const isAdmin = currentUser?.role === 1;
   const [activePage, setActivePage] = useState(isAdmin ? 'overview' : 'subjects');
   const [showLogout, setShowLogout] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => setShowLogout(true);
@@ -42,12 +44,15 @@ const DashboardLayout = () => {
       <AdminSidebar
         activePage={activePage}
         currentUser={currentUser}
-        onNavigate={setActivePage}
+        onNavigate={(page) => { setActivePage(page); setSidebarOpen(false); }}
         onLogout={handleLogout}
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
       />
       <AdminMain
         activePage={activePage}
         onLogout={handleLogout}
+        onToggleSidebar={() => setSidebarOpen((p) => !p)}
       />
       {showLogout && (
         <div style={{
